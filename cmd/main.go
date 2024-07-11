@@ -30,6 +30,9 @@ func main() {
 	app.Get("/api/docs", docHandler.GetAllDocuments)
 	app.Post("/api/docs", docHandler.CreateDocument)
 	app.Patch("/api/docs/:id", docHandler.UpdateDocument)
+  app.Get("/api/docs/:id" , docHandler.GetDocumentByID)
+  app.Delete("/api/docs/:id" , docHandler.DeleteDocument)
+
 
 	app.Post("/roles", createRole)
 	app.Post("/permissions", createPermission)

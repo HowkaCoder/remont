@@ -104,7 +104,17 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 	}
 
 	files := form.File["file"]
+  
 	if len(files) > 0 {
+    
+    eDoc , err := dh.usecadse.GetDocumentByID(uint(id))
+    if err != nil {
+      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
+    }
+
+    if err := os.Remove(eDoc.Filepath); err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+    }
 
 		file := files[0]
 
@@ -120,18 +130,46 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName}
+		doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: filePath}
 
 		if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
 		}
 
-	}
+	} else {
 
 	doc := entity.Document{ProjectID: uint(projectID), Name: name[0]}
 
 	if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
 	}
-	return c.JSON(doc)
+
+}
+return c.JSON(fiber.Map{"name":name[0] , "projectID":projectID , "file":files , "len(files)" : len(files) , "id":uint(id)})
+}
+
+
+
+func (dh *DocumentHandler) DeleteDocument(c *fiber.Ctx) error {
+    id , err := strconv.Atoi(c.Params("id"))
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error" :err.Error()})
+    }
+
+    doc , err := dh.usecadse.GetDocumentByID(uint(id))
+    if err != nil {
+      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
+    }
+
+    if err := os.Remove(doc.Filepath); err != nil {
+      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
+    }
+
+
+    if err := dh.usecadse.DeleteDocument(uint(id)); err != nil {
+      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
+    }
+
+    return c.JSON(fiber.Map{"message":"successfully deleted"})
+
 }
