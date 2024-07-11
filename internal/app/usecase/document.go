@@ -10,7 +10,7 @@ type DocumentUsecase interface {
 	GetDocumentByID(id uint) (*entity.Document, error)
 	CreateDocument(doc *entity.Document) error
 	UpdateDocument(doc *entity.Document, id uint) error
-	//DeleteDocument(id uint) error
+DeleteDocument(id uint) error
 }
 
 type documentUsecase struct {
@@ -37,6 +37,6 @@ func (du *documentUsecase) UpdateDocument(doc *entity.Document, id uint) error {
 	return du.repo.UpdateDocument(doc, id)
 }
 
-//func (du *documentUsecase) DeleteDocument(id uint) error {
-//	return du.repo.DeleteDocument(id)
-//}
+func (du *documentUsecase) DeleteDocument(id uint) error {
+	return du.repo.DeleteDocument(id)
+}

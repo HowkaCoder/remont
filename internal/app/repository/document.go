@@ -10,7 +10,7 @@ type DocumentRepository interface {
 	GetDocumentByID(id uint) (*entity.Document, error)
 	CreateDocument(doc *entity.Document) error
 	UpdateDocument(doc *entity.Document, id uint) error
-	//DeleteDocument(id uint) error
+	DeleteDocument(id uint) error
 }
 
 type documentRepository struct {
@@ -49,19 +49,21 @@ func (dr *documentRepository) UpdateDocument(doc *entity.Document, id uint) erro
 
 	if doc.Name != "" {
 		eDoc.Name = doc.Name
-	} else if doc.Filepath != "" {
+	}
+  if doc.Filepath != "" {
 		eDoc.Filepath = doc.Filepath
-	} else if doc.ProjectID != 0 {
+	} 
+  if doc.ProjectID != 0 {
 		eDoc.ProjectID = doc.ProjectID
 	}
 
 	return dr.db.Save(&eDoc).Error
 }
 
-//func (dr *documentRepository) DeleteDocument(id uint) error {
-//	var doc *entity.Document
-//	if err := dr.db.First(&doc, id).Error; err != nil {
-//		return err
-//	}
-//	return dr.db.Delete(&doc).Error
-//}
+func (dr *documentRepository) DeleteDocument(id uint) error {
+	var doc *entity.Document
+	if err := dr.db.First(&doc, id).Error; err != nil {
+	return err
+	}
+	return dr.db.Delete(&doc).Error
+}
