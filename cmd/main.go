@@ -25,7 +25,15 @@ func main() {
 	docRepo := repository.NewDocumentRepository(db)
 	docUsecase := usecase.NewDocumentUsecase(docRepo)
 	docHandler := handler.NewDocumentHandler(docUsecase)
-	app := fiber.New()
+	
+
+
+
+
+
+  app := fiber.New()
+
+
 
 	app.Get("/api/docs", docHandler.GetAllDocuments)
 	app.Post("/api/docs", docHandler.CreateDocument)
@@ -34,15 +42,20 @@ func main() {
   app.Delete("/api/docs/:id" , docHandler.DeleteDocument)
 
 
+
+
 	app.Post("/roles", createRole)
 	app.Post("/permissions", createPermission)
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
 	app.Post("/login", login)
-	app.Post("/users", userHandler.CreateUser)
+	app.Post("/api/users", userHandler.CreateUser)
 
-	app.Use(authMiddleware)
-	app.Get("/users", PermissionMiddleware("get_all_users"), userHandler.GetAllUsers)
+
+
+
+//	app.Use(authMiddleware)
+	//app.Get("/users", PermissionMiddleware("get_all_users"), userHandler.GetAllUsers)
 
 	log.Fatal(app.Listen(":3000"))
 }
