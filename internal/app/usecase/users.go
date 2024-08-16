@@ -10,7 +10,12 @@ type UserUsecase interface {
 	GetUserByID(id uint) (*entity.User, error)
 	CreateUser(user *entity.User) error
 	UpdateUser(user *entity.User , id uint) error
-	DeleteUser(id uint) error 
+	DeleteUser(id uint) error
+
+
+
+
+
 }
 
 type userUsecase struct {
@@ -40,3 +45,5 @@ func (ur *userUsecase) UpdateUser(user *entity.User , id uint) error {
 func (ur *userUsecase) DeleteUser(id uint) error {
 	return ur.repo.DeleteUser(id)
 }
+
+
