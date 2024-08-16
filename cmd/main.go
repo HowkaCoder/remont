@@ -29,17 +29,20 @@ func main() {
 	docUsecase := usecase.NewDocumentUsecase(docRepo)
 	docHandler := handler.NewDocumentHandler(docUsecase)
 
+	projectRepo := repository.NewProjectRepository(db)
+	projectUsecase := usecase.NewProjectUsecase(projectRepo)
+	projectHandler := handler.NewProjectHandler(projectUsecase)
+
 	app := fiber.New()
 
 	// Роуты для регистрации и логина
 	app.Post("/register", userHandler.CreateUser)
 	app.Post("/login", login)
 
-  app.Post("/roles", createRole)
+	app.Post("/roles", createRole)
 	app.Post("/permissions", createPermission)
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
-
 
 	// Middleware для аутентификации
 	app.Use(authMiddleware)
@@ -51,12 +54,24 @@ func main() {
 	app.Get("/api/docs/:id", PermissionMiddleware("get_document_by_id"), docHandler.GetDocumentByID)
 	app.Delete("/api/docs/:id", PermissionMiddleware("delete_document"), docHandler.DeleteDocument)
 
+	app.Get("/api/projects", PermissionMiddleware("get_all_projects"), projectHandler.GetAllProjects)
+	app.Post("/api/projects", PermissionMiddleware("create_project"), projectHandler.CreateProject)
+	app.Patch("/api/projects/:id", PermissionMiddleware("update_project"), projectHandler.UpdateProject)
+	app.Get("/api/projects/:id", PermissionMiddleware("get_project_by_id"), projectHandler.GetProjectByID)
+	app.Delete("/api/projects/:id", PermissionMiddleware("delete_project"), projectHandler.DeleteProject)
+
+	app.Get("/api/project-roles", PermissionMiddleware("get_all_project_roles"), projectHandler.GetAllProjectRole)
+	app.Post("/api/project-roles", PermissionMiddleware("create_project_role"), projectHandler.CreateProjectRole)
+	app.Patch("/api/project-roles/:id", PermissionMiddleware("update_project_role"), projectHandler.UpdateProjectRole)
+	app.Get("/api/project-roles/:id", PermissionMiddleware("get_project_role_by_id"), projectHandler.GetProjectRoleByID)
+	app.Delete("/api/project-roles/:id", PermissionMiddleware("delete_project_role"), projectHandler.DeleteProjectRole)
+
 	// Роуты для управления ролями и правами
 	/*app.Post("/roles", PermissionMiddleware("create_role"), createRole)
 	app.Post("/permissions", PermissionMiddleware("create_permission"), createPermission)
 	app.Post("/roles/assign", PermissionMiddleware("assign_permission"), assignPermissionToRole)
 	app.Post("/users/assign-role", PermissionMiddleware("assign_role"), assignRoleToUser)
-*/
+	*/
 	log.Fatal(app.Listen(":3000"))
 }
 
@@ -191,4 +206,3 @@ func assignRoleToUser(c *fiber.Ctx) error {
 	db.Create(&userRole)
 	return c.Status(fiber.StatusCreated).JSON(userRole)
 }
-
