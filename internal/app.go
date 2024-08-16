@@ -20,8 +20,17 @@ if err != nil {
 	log.Fatal(err)
 }
 
-	err = DB.AutoMigrate(&entity.User{}, &entity.Role{}, &entity.UserRole{}, &entity.Permission{}, &entity.RolePermission{}, &entity.Document{})
-	if err != nil {
+	err = DB.AutoMigrate(
+		&entity.User{},
+		&entity.Role{},
+		&entity.UserRole{},
+		&entity.Permission{},
+		&entity.RolePermission{},
+		&entity.Document{},
+//		&entity.ProjectManager{},
+	//	&entity.ProjectWorker{},
+	)	
+  if err != nil {
 		log.Fatal(err)
 	}
 	return DB
