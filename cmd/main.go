@@ -14,10 +14,13 @@ import (
 )
 
 var db *gorm.DB
+var jwtSecret = []byte("your_secret_key")
 
 func main() {
+	// Инициализация базы данных
 	db = internal.Init()
 
+	// Инициализация репозиториев, usecase и обработчиков
 	userRepo := repository.NewUserRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUsecase)
@@ -25,46 +28,44 @@ func main() {
 	docRepo := repository.NewDocumentRepository(db)
 	docUsecase := usecase.NewDocumentUsecase(docRepo)
 	docHandler := handler.NewDocumentHandler(docUsecase)
-	
 
+	app := fiber.New()
 
+	// Роуты для регистрации и логина
+	app.Post("/register", userHandler.CreateUser)
+	app.Post("/login", login)
 
-
-
-  app := fiber.New()
-
-
-
-	app.Get("/api/docs", docHandler.GetAllDocuments)
-	app.Post("/api/docs", docHandler.CreateDocument)
-	app.Patch("/api/docs/:id", docHandler.UpdateDocument)
-  app.Get("/api/docs/:id" , docHandler.GetDocumentByID)
-  app.Delete("/api/docs/:id" , docHandler.DeleteDocument)
-
-
-
-
-	app.Post("/roles", createRole)
+  app.Post("/roles", createRole)
 	app.Post("/permissions", createPermission)
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
-	app.Post("/login", login)
-	app.Post("/api/users", userHandler.CreateUser)
 
 
+	// Middleware для аутентификации
+	app.Use(authMiddleware)
 
+	// Роуты для управления документами с проверкой прав доступа
+	app.Get("/api/docs", PermissionMiddleware("get_documents"), docHandler.GetAllDocuments)
+	app.Post("/api/docs", PermissionMiddleware("create_document"), docHandler.CreateDocument)
+	app.Patch("/api/docs/:id", PermissionMiddleware("update_document"), docHandler.UpdateDocument)
+	app.Get("/api/docs/:id", PermissionMiddleware("get_document_by_id"), docHandler.GetDocumentByID)
+	app.Delete("/api/docs/:id", PermissionMiddleware("delete_document"), docHandler.DeleteDocument)
 
-//	app.Use(authMiddleware)
-	//app.Get("/users", PermissionMiddleware("get_all_users"), userHandler.GetAllUsers)
-
+	// Роуты для управления ролями и правами
+	/*app.Post("/roles", PermissionMiddleware("create_role"), createRole)
+	app.Post("/permissions", PermissionMiddleware("create_permission"), createPermission)
+	app.Post("/roles/assign", PermissionMiddleware("assign_permission"), assignPermissionToRole)
+	app.Post("/users/assign-role", PermissionMiddleware("assign_role"), assignRoleToUser)
+*/
 	log.Fatal(app.Listen(":3000"))
 }
 
+// Middleware для проверки прав доступа
 func PermissionMiddleware(requiredPermission string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userID := c.Locals("userID").(uint) // Assuming userID is set in context after authentication
+		userID := c.Locals("userID").(uint) // Предполагается, что userID установлен в контексте после аутентификации
 		var user entity.User
-		db.Preload("Roles.Permissions").Preload("Permissions").First(&user, userID)
+		db.Preload("Roles.Permissions").First(&user, userID)
 
 		for _, role := range user.Roles {
 			for _, permission := range role.Permissions {
@@ -80,6 +81,7 @@ func PermissionMiddleware(requiredPermission string) fiber.Handler {
 	}
 }
 
+// Middleware для аутентификации
 func authMiddleware(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
@@ -102,11 +104,11 @@ func authMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-var jwtSecret = []byte("your_secret_key")
-
+// Функция для логина
 func login(c *fiber.Ctx) error {
 	var req struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -114,7 +116,7 @@ func login(c *fiber.Ctx) error {
 
 	var user entity.User
 	db.Where("email = ?", req.Email).First(&user)
-	if user.ID == 0 {
+	if user.ID == 0 || user.Password != req.Password {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
@@ -130,39 +132,36 @@ func login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": tokenString})
 }
 
+// Функция для создания роли
 func createRole(c *fiber.Ctx) error {
 	var role entity.Role
 	if err := c.BodyParser(&role); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	db.Create(&role)
 	return c.Status(fiber.StatusCreated).JSON(role)
 }
 
+// Функция для создания разрешения
 func createPermission(c *fiber.Ctx) error {
-	permission := new(entity.Permission)
-	if err := c.BodyParser(permission); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+	var permission entity.Permission
+	if err := c.BodyParser(&permission); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	db.Create(&permission)
 	return c.Status(fiber.StatusCreated).JSON(permission)
 }
 
+// Функция для назначения разрешения роли
 func assignPermissionToRole(c *fiber.Ctx) error {
 	var input struct {
 		RoleID       uint `json:"RoleID"`
 		PermissionID uint `json:"PermissionID"`
 	}
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	rolePermission := entity.RolePermission{
@@ -174,15 +173,14 @@ func assignPermissionToRole(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(rolePermission)
 }
 
+// Функция для назначения роли пользователю
 func assignRoleToUser(c *fiber.Ctx) error {
 	var input struct {
 		UserID uint `json:"UserID"`
 		RoleID uint `json:"RoleID"`
 	}
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	userRole := entity.UserRole{
@@ -193,3 +191,4 @@ func assignRoleToUser(c *fiber.Ctx) error {
 	db.Create(&userRole)
 	return c.Status(fiber.StatusCreated).JSON(userRole)
 }
+

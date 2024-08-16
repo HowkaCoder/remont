@@ -11,6 +11,9 @@ type UserRepository interface {
 	CreateUser(user *entity.User) error 
 	UpdateUser(user *entity.User , id uint) error 
 	DeleteUser(id uint) error 
+
+
+
 }
 
 type userRepository struct {
@@ -85,3 +88,5 @@ func (ur *userRepository) DeleteUser(id uint) error {
 
 	return nil
 }
+
+
