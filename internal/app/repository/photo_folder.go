@@ -24,7 +24,7 @@ func NewPhotoFolderRepository(db *gorm.DB) *PhotoFolderRepository {
 
 func (pr *PhotoFolderRepository) GetAllPhotoFolders() ([]entity.PhotoFolder, error) {
 	var folders []entity.PhotoFolder
-	if err := pr.db.Find(&folders).Error; err != nil {
+	if err := pr.db.Preload("Photos").Find(&folders).Error; err != nil {
 		return nil, err
 	}
 	return folders, nil
@@ -32,7 +32,7 @@ func (pr *PhotoFolderRepository) GetAllPhotoFolders() ([]entity.PhotoFolder, err
 
 func (pr *PhotoFolderRepository) GetPhotoFolderByID(id uint) (*entity.PhotoFolder, error) {
 	var folder *entity.PhotoFolder
-	if err := pr.db.First(&folder, id).Error; err != nil {
+	if err := pr.db.Preload("Photos").First(&folder, id).Error; err != nil {
 		return nil, err
 	}
 	return folder, nil
