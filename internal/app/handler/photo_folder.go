@@ -12,6 +12,9 @@ type PhotoFolderHandler struct {
 	usecase usecase.PhotoFolderUseCase
 }
 
+func NewPhotoFolderHandler(usecase usecase.PhotoFolderUseCase) *PhotoFolderHandler {
+	return &PhotoFolderHandler{usecase: usecase}
+}
 func (h *PhotoFolderHandler) GetAllPhotoFolders(c *fiber.Ctx) error {
 	folders, err := h.usecase.GetAllPhotoFolders()
 	if err != nil {

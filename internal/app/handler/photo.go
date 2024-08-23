@@ -68,7 +68,7 @@ func (h *PhotoHandler) CreatePhoto(c *fiber.Ctx) error {
 
 	file := files[0]
 
-	uploadDir := "./uploads/documents"
+	uploadDir := "./uploads/photos"
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -135,7 +135,7 @@ func (h *PhotoHandler) UpdatePhoto(c *fiber.Ctx) error {
 
 		file := files[0]
 
-		uploadDir := "./uploads/documents"
+		uploadDir := "./uploads/photos"
 		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}

@@ -24,7 +24,7 @@ func NewDocumentFolderRepository(db *gorm.DB) *documentFolderRepository {
 
 func (dr *documentFolderRepository) GetAllDocumentFolders() ([]entity.DocumentFolder, error) {
 	var folders []entity.DocumentFolder
-	if err := dr.db.Find(&folders).Error; err != nil {
+	if err := dr.db.Preload("Documents").Find(&folders).Error; err != nil {
 		return nil, err
 	}
 	return folders, nil
@@ -32,7 +32,7 @@ func (dr *documentFolderRepository) GetAllDocumentFolders() ([]entity.DocumentFo
 
 func (dr *documentFolderRepository) GetDocumentFolderByID(id uint) (*entity.DocumentFolder, error) {
 	var doc *entity.DocumentFolder
-	if err := dr.db.First(&doc, id).Error; err != nil {
+	if err := dr.db.Preload("Documents").First(&doc, id).Error; err != nil {
 		return doc, err
 	}
 	return doc, nil
