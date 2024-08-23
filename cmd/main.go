@@ -33,6 +33,14 @@ func main() {
 	projectUsecase := usecase.NewProjectUsecase(projectRepo)
 	projectHandler := handler.NewProjectHandler(projectUsecase)
 
+	photoRepo := repository.NewPhotoRepository(db)
+	photoUsecase := usecase.NewPhotoUsecase(photoRepo)
+	photoHandler := handler.NewPhotoHandler(photoUsecase)
+
+	DocumentFolderRepo := repository.NewDocumentFolderRepository(db)
+	documentFolderUsecase := usecase.NewDocumentFolderUsecase(DocumentFolderRepo)
+	documentFolderHandler := handler.NewDocumentFolderHandler(documentFolderUsecase)
+
 	app := fiber.New()
 
 	// Роуты для регистрации и логина
@@ -52,6 +60,7 @@ func main() {
 	app.Post("/api/docs", PermissionMiddleware("create_document"), docHandler.CreateDocument)
 	app.Patch("/api/docs/:id", PermissionMiddleware("update_document"), docHandler.UpdateDocument)
 	app.Get("/api/docs/:id", PermissionMiddleware("get_document_by_id"), docHandler.GetDocumentByID)
+	app.Get("/api/docs/folder/:folder_id", PermissionMiddleware("get_documents_by_folder_id"), docHandler.GetDocumentsByFolderID)
 	app.Delete("/api/docs/:id", PermissionMiddleware("delete_document"), docHandler.DeleteDocument)
 
 	app.Get("/api/projects", PermissionMiddleware("get_all_projects"), projectHandler.GetAllProjects)
@@ -65,6 +74,20 @@ func main() {
 	app.Patch("/api/project-roles/:id", PermissionMiddleware("update_project_role"), projectHandler.UpdateProjectRole)
 	app.Get("/api/project-roles/:id", PermissionMiddleware("get_project_role_by_id"), projectHandler.GetProjectRoleByID)
 	app.Delete("/api/project-roles/:id", PermissionMiddleware("delete_project_role"), projectHandler.DeleteProjectRole)
+
+	app.Get("/api/photos", PermissionMiddleware("get_all_photos"), photoHandler.GetAllPhotos)
+	app.Post("/api/photos", PermissionMiddleware("create_photo"), photoHandler.CreatePhoto)
+	app.Get("/api/photos/folder/:folderID", PermissionMiddleware("get_photos_by_folder_id"), photoHandler.GetPhotosByFolderID)
+	app.Get("/api/photos/:id", PermissionMiddleware("get_photo_by_id"), photoHandler.GetPhotoByID)
+	app.Delete("/api/photos/:id", PermissionMiddleware("delete_photo"), photoHandler.DeletePhoto)
+	app.Patch("/api/photos/:id", PermissionMiddleware("update_photo"), photoHandler.UpdatePhoto)
+
+	app.Get("/api/document-folders", PermissionMiddleware("get_all_document_folders"), documentFolderHandler.GetAllDocumentFolders)
+	app.Get("/api/document-folders/:folderID", PermissionMiddleware("get_document_folder_by_folder_id"), documentFolderHandler.GetDocumentFolderByID)
+	app.Get("/api/document-folders/project/id", PermissionMiddleware("get_document_folder_by_project_id"), documentFolderHandler.GetDocumentFoldersByProjectID)
+	app.Post("/api/document-folders", PermissionMiddleware("create_document_folder"), documentFolderHandler.CreateDocumentFolder)
+	app.Patch("/api/document-folders/:id		", PermissionMiddleware("update_document_folder"), documentFolderHandler.UpdateDocumentFolder)
+	app.Delete("/api/document-folders/:id", PermissionMiddleware("delete_document_folder"), documentFolderHandler.DeleteDocumentFolder)
 
 	// Роуты для управления ролями и правами
 	/*app.Post("/roles", PermissionMiddleware("create_role"), createRole)
