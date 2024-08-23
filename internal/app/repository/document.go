@@ -10,6 +10,7 @@ type DocumentRepository interface {
 	GetDocumentByID(id uint) (*entity.Document, error)
 	CreateDocument(doc *entity.Document) error
 	UpdateDocument(doc *entity.Document, id uint) error
+	GetDocumentsByFolderID(folderID uint) ([]entity.Document, error)
 	DeleteDocument(id uint) error
 }
 
@@ -50,11 +51,14 @@ func (dr *documentRepository) UpdateDocument(doc *entity.Document, id uint) erro
 	if doc.Name != "" {
 		eDoc.Name = doc.Name
 	}
-  if doc.Filepath != "" {
+	if doc.Filepath != "" {
 		eDoc.Filepath = doc.Filepath
-	} 
-  if doc.ProjectID != 0 {
+	}
+	if doc.ProjectID != 0 {
 		eDoc.ProjectID = doc.ProjectID
+	}
+	if doc.DocumentFolderID != 0 {
+		eDoc.DocumentFolderID = doc.DocumentFolderID
 	}
 
 	return dr.db.Save(&eDoc).Error
@@ -63,7 +67,16 @@ func (dr *documentRepository) UpdateDocument(doc *entity.Document, id uint) erro
 func (dr *documentRepository) DeleteDocument(id uint) error {
 	var doc *entity.Document
 	if err := dr.db.First(&doc, id).Error; err != nil {
-	return err
+		return err
 	}
 	return dr.db.Delete(&doc).Error
+}
+
+func (dr *documentRepository) GetDocumentsByFolderID(folderID uint) ([]entity.Document, error) {
+	var docs []entity.Document
+	err := dr.db.Where("document_folder_id =?", folderID).Find(&docs).Error
+	if err != nil {
+		return nil, err
+	}
+	return docs, nil
 }

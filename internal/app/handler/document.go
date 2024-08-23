@@ -2,13 +2,14 @@ package handler
 
 import (
 	"fmt"
-	"github.com/HowkaCoder/remont/internal/app/entity"
-	"github.com/HowkaCoder/remont/internal/app/usecase"
-	"github.com/gofiber/fiber/v2"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/HowkaCoder/remont/internal/app/entity"
+	"github.com/HowkaCoder/remont/internal/app/usecase"
+	"github.com/gofiber/fiber/v2"
 )
 
 type DocumentHandler struct {
@@ -104,17 +105,17 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 	}
 
 	files := form.File["file"]
-  
-	if len(files) > 0 {
-    
-    eDoc , err := dh.usecadse.GetDocumentByID(uint(id))
-    if err != nil {
-      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
-    }
 
-    if err := os.Remove(eDoc.Filepath); err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-    }
+	if len(files) > 0 {
+
+		eDoc, err := dh.usecadse.GetDocumentByID(uint(id))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+		}
+
+		if err := os.Remove(eDoc.Filepath); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 
 		file := files[0]
 
@@ -138,38 +139,48 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 
 	} else {
 
-	doc := entity.Document{ProjectID: uint(projectID), Name: name[0]}
+		doc := entity.Document{ProjectID: uint(projectID), Name: name[0]}
 
-	if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
+		if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+		}
+
+	}
+	return c.JSON(fiber.Map{"name": name[0], "projectID": projectID, "file": files, "len(files)": len(files), "id": uint(id)})
+}
+
+func (dh *DocumentHandler) DeleteDocument(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
+	}
+
+	doc, err := dh.usecadse.GetDocumentByID(uint(id))
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
 	}
 
+	if err := os.Remove(doc.Filepath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	}
+
+	if err := dh.usecadse.DeleteDocument(uint(id)); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "successfully deleted"})
+
 }
-return c.JSON(fiber.Map{"name":name[0] , "projectID":projectID , "file":files , "len(files)" : len(files) , "id":uint(id)})
-}
 
+func (dh *DocumentHandler) GetDocumentsByFolderID(c *fiber.Ctx) error {
+	folderID, err := strconv.Atoi(c.Params("folderID"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
+	}
+	docs, err := dh.usecadse.GetDocumentsByFolderID(uint(folderID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	}
 
-
-func (dh *DocumentHandler) DeleteDocument(c *fiber.Ctx) error {
-    id , err := strconv.Atoi(c.Params("id"))
-    if err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error" :err.Error()})
-    }
-
-    doc , err := dh.usecadse.GetDocumentByID(uint(id))
-    if err != nil {
-      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
-    }
-
-    if err := os.Remove(doc.Filepath); err != nil {
-      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
-    }
-
-
-    if err := dh.usecadse.DeleteDocument(uint(id)); err != nil {
-      return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
-    }
-
-    return c.JSON(fiber.Map{"message":"successfully deleted"})
-
+	return c.JSON(docs)
 }
