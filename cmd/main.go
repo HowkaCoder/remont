@@ -17,10 +17,8 @@ var db *gorm.DB
 var jwtSecret = []byte("your_secret_key")
 
 func main() {
-	// Инициализация базы данных
 	db = internal.Init()
 
-	// Инициализация репозиториев, usecase и обработчиков
 	userRepo := repository.NewUserRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUsecase)
@@ -41,6 +39,14 @@ func main() {
 	documentFolderUsecase := usecase.NewDocumentFolderUsecase(DocumentFolderRepo)
 	documentFolderHandler := handler.NewDocumentFolderHandler(documentFolderUsecase)
 
+	CharRepo := repository.NewCharRepository(db)
+	charUsecase := usecase.NewCharUsecase(CharRepo)
+	charHandler := handler.NewCharHandler(charUsecase)
+
+	photoFolder := repository.NewPhotoFolderRepository(db)
+	photoFolderUsecase := usecase.NewPhotoFolderUsecase(photoFolder)
+	photoFolderHandler := handler.NewPhotoFolderHandler(photoFolderUsecase)
+
 	app := fiber.New()
 
 	// Роуты для регистрации и логина
@@ -52,10 +58,8 @@ func main() {
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
 
-	// Middleware для аутентификации
 	app.Use(authMiddleware)
 
-	// Роуты для управления документами с проверкой прав доступа
 	app.Get("/api/docs", PermissionMiddleware("get_documents"), docHandler.GetAllDocuments)
 	app.Post("/api/docs", PermissionMiddleware("create_document"), docHandler.CreateDocument)
 	app.Patch("/api/docs/:id", PermissionMiddleware("update_document"), docHandler.UpdateDocument)
@@ -89,19 +93,24 @@ func main() {
 	app.Patch("/api/document-folders/:id		", PermissionMiddleware("update_document_folder"), documentFolderHandler.UpdateDocumentFolder)
 	app.Delete("/api/document-folders/:id", PermissionMiddleware("delete_document_folder"), documentFolderHandler.DeleteDocumentFolder)
 
-	// Роуты для управления ролями и правами
-	/*app.Post("/roles", PermissionMiddleware("create_role"), createRole)
-	app.Post("/permissions", PermissionMiddleware("create_permission"), createPermission)
-	app.Post("/roles/assign", PermissionMiddleware("assign_permission"), assignPermissionToRole)
-	app.Post("/users/assign-role", PermissionMiddleware("assign_role"), assignRoleToUser)
-	*/
+	app.Get("/api/photo-folder/", PermissionMiddleware("get_all_photo_folders"), photoFolderHandler.GetAllPhotoFolders)
+	app.Get("/api/photo-folder/:folderID", PermissionMiddleware("get_photo_folder_by_folder_id"), photoFolderHandler.GetPhotoFolderByID)
+	app.Post("/api/photo-folder/", PermissionMiddleware("create_photo_folder"), photoFolderHandler.CreatePhotoFolder)
+	app.Patch("/api/photo-folder/:id", PermissionMiddleware("update_photo_folder"), photoFolderHandler.UpdatePhotoFolder)
+	app.Delete("/api/photo-folder/:id", PermissionMiddleware("delete_photo_folder"), photoFolderHandler.DeletePhotoFolder)
+	app.Get("/apo/photo-folder/project/:id", PermissionMiddleware("get_photo_folder_by_project_id"), photoFolderHandler.GetPhotoFoldersByProjectID)
+
+	app.Get("/api/chars/project/:id", PermissionMiddleware("get_chars_by_project_id"), charHandler.GetAllCharsByProjectID)
+	app.Post("/api/chars/project/:id", PermissionMiddleware("create_char"), charHandler.CreateChar)
+	app.Patch("/api/chars/:id", PermissionMiddleware("update_char"), charHandler.UpdateChar)
+	app.Delete("/api/chars/:id", PermissionMiddleware("delete_char"), charHandler.DeleteChar)
+
 	log.Fatal(app.Listen(":3000"))
 }
 
-// Middleware для проверки прав доступа
 func PermissionMiddleware(requiredPermission string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userID := c.Locals("userID").(uint) // Предполагается, что userID установлен в контексте после аутентификации
+		userID := c.Locals("userID").(uint)
 		var user entity.User
 		db.Preload("Roles.Permissions").First(&user, userID)
 
@@ -119,7 +128,6 @@ func PermissionMiddleware(requiredPermission string) fiber.Handler {
 	}
 }
 
-// Middleware для аутентификации
 func authMiddleware(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
@@ -142,7 +150,6 @@ func authMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-// Функция для логина
 func login(c *fiber.Ctx) error {
 	var req struct {
 		Email    string `json:"email"`
@@ -170,7 +177,6 @@ func login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": tokenString})
 }
 
-// Функция для создания роли
 func createRole(c *fiber.Ctx) error {
 	var role entity.Role
 	if err := c.BodyParser(&role); err != nil {
@@ -181,7 +187,6 @@ func createRole(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(role)
 }
 
-// Функция для создания разрешения
 func createPermission(c *fiber.Ctx) error {
 	var permission entity.Permission
 	if err := c.BodyParser(&permission); err != nil {
@@ -192,7 +197,6 @@ func createPermission(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(permission)
 }
 
-// Функция для назначения разрешения роли
 func assignPermissionToRole(c *fiber.Ctx) error {
 	var input struct {
 		RoleID       uint `json:"RoleID"`
@@ -211,7 +215,6 @@ func assignPermissionToRole(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(rolePermission)
 }
 
-// Функция для назначения роли пользователю
 func assignRoleToUser(c *fiber.Ctx) error {
 	var input struct {
 		UserID uint `json:"UserID"`

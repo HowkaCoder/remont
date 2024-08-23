@@ -6,9 +6,10 @@ import (
 
 type Project struct {
 	gorm.Model
-	ID      uint `gorm:"primaryKey"`
-	Title   string
-	Members []ProjectRole
+	ID      uint          `gorm:"primaryKey"`
+	Title   string        `gorm:"not null" json:"title"`
+	Members []ProjectRole `gorm:"foreignKey:ProjectID" json:"members"`
+	Chars   []Char        `gorm:"foreignKey:ProjectID" json:"characteristics"`
 }
 
 type ProjectRole struct {
