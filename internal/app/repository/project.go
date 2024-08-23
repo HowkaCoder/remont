@@ -70,7 +70,7 @@ func (pr *projectRepository) DeleteProject(id uint) error {
 
 func (pr *projectRepository) GetAllProjectRoles() ([]entity.ProjectRole, error) {
 	var projectRoles []entity.ProjectRole
-	if err := pr.db.Find(&projectRoles).Error; err != nil {
+	if err := pr.db.Preload("Project").Preload("User").Preload("Role").Find(&projectRoles).Error; err != nil {
 		return nil, err
 	}
 	return projectRoles, nil
@@ -78,7 +78,7 @@ func (pr *projectRepository) GetAllProjectRoles() ([]entity.ProjectRole, error) 
 
 func (pr *projectRepository) GetProjectRoleByID(id uint) (*entity.ProjectRole, error) {
 	var projectRole *entity.ProjectRole
-	if err := pr.db.First(&projectRole, id).Error; err != nil {
+	if err := pr.db.Preload("Project").Preload("User").Preload("Role").First(&projectRole, id).Error; err != nil {
 		return nil, err
 	}
 	return projectRole, nil

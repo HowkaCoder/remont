@@ -9,8 +9,10 @@ type DocumentUsecase interface {
 	GetAllDocuments() ([]entity.Document, error)
 	GetDocumentByID(id uint) (*entity.Document, error)
 	CreateDocument(doc *entity.Document) error
+
+	GetDocumentsByFolderID(folderID uint) ([]entity.Document, error)
 	UpdateDocument(doc *entity.Document, id uint) error
-DeleteDocument(id uint) error
+	DeleteDocument(id uint) error
 }
 
 type documentUsecase struct {
@@ -39,4 +41,8 @@ func (du *documentUsecase) UpdateDocument(doc *entity.Document, id uint) error {
 
 func (du *documentUsecase) DeleteDocument(id uint) error {
 	return du.repo.DeleteDocument(id)
+}
+
+func (du *documentUsecase) GetDocumentsByFolderID(folderID uint) ([]entity.Document, error) {
+	return du.repo.GetDocumentsByFolderID(folderID)
 }

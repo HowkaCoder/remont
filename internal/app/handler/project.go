@@ -16,7 +16,6 @@ func NewProjectHandler(usecase usecase.ProjectUsecase) *ProjectHandler {
 	return &ProjectHandler{usecase}
 }
 
-// Get all projects
 func (h *ProjectHandler) GetAllProjects(c *fiber.Ctx) error {
 	projects, err := h.usecase.GetAllProjects()
 	if err != nil {
@@ -25,8 +24,6 @@ func (h *ProjectHandler) GetAllProjects(c *fiber.Ctx) error {
 
 	return c.JSON(projects)
 }
-
-// Get project by ID
 
 func (h *ProjectHandler) GetProjectByID(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
@@ -42,8 +39,6 @@ func (h *ProjectHandler) GetProjectByID(c *fiber.Ctx) error {
 	return c.JSON(project)
 }
 
-// Create a new project
-
 func (h *ProjectHandler) CreateProject(c *fiber.Ctx) error {
 	var project entity.Project
 	if err := c.BodyParser(&project); err != nil {
@@ -56,8 +51,6 @@ func (h *ProjectHandler) CreateProject(c *fiber.Ctx) error {
 
 	return c.JSON(project)
 }
-
-// Update an existing project
 
 func (h *ProjectHandler) UpdateProject(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
@@ -78,8 +71,6 @@ func (h *ProjectHandler) UpdateProject(c *fiber.Ctx) error {
 
 	return c.JSON(project)
 }
-
-// Delete a project
 
 func (h *ProjectHandler) DeleteProject(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
