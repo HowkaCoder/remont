@@ -30,6 +30,13 @@ func Init() *gorm.DB {
 		&entity.Document{},
 		&entity.Project{},
 		&entity.ProjectRole{},
+		&entity.DocumentFolder{},
+		&entity.PhotoFolder{},
+		&entity.Photo{},
+		&entity.ProjectRole{},
+		&entity.Char{},
+		&entity.State{},
+		&entity.StateUser{},
 		//		&entity.ProjectManager{},
 	//	&entity.ProjectWorker{},
 	)
