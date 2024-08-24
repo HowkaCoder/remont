@@ -47,6 +47,10 @@ func main() {
 	photoFolderUsecase := usecase.NewPhotoFolderUsecase(photoFolder)
 	photoFolderHandler := handler.NewPhotoFolderHandler(photoFolderUsecase)
 
+	stateRepo := repository.NewStateRepository(db)
+	stateUSecase := usecase.NewStateUsecase(stateRepo)
+	stateHandler := handler.NewStateHandler(stateUSecase)
+
 	app := fiber.New()
 
 	// Роуты для регистрации и логина
@@ -104,6 +108,13 @@ func main() {
 	app.Post("/api/chars/project/:id", PermissionMiddleware("create_char"), charHandler.CreateChar)
 	app.Patch("/api/chars/:id", PermissionMiddleware("update_char"), charHandler.UpdateChar)
 	app.Delete("/api/chars/:id", PermissionMiddleware("delete_char"), charHandler.DeleteChar)
+
+	app.Get("/api/states/:id", PermissionMiddleware("get_states_by_project_id"), stateHandler.GetStatesByProjectID)
+	app.Post("/api/states", PermissionMiddleware("create_state"), stateHandler.CreateState)
+	app.Patch("/api/states/:id", PermissionMiddleware("update_state"), stateHandler.UpdateState)
+	app.Delete("/api/states/:id", PermissionMiddleware("delete_state"), stateHandler.DeleteState)
+	app.Get("/api/states/user", PermissionMiddleware("create_state_relation"), stateHandler.AssignWorkerToState)
+	app.Delete("/api/states/user", PermissionMiddleware("delete_state_relation"), stateHandler.RemoveWorkerFromState)
 
 	log.Fatal(app.Listen(":3000"))
 }
