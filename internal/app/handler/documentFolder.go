@@ -104,7 +104,7 @@ func (h *DocumentFolderHandler) UpdateDocumentFolder(c *fiber.Ctx) error {
 		})
 	}
 
-	var folder entity.DocumentFolder
+	var folder *entity.DocumentFolder
 	if err := c.BodyParser(&folder); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request payload",
@@ -112,7 +112,7 @@ func (h *DocumentFolderHandler) UpdateDocumentFolder(c *fiber.Ctx) error {
 		})
 	}
 
-	err = h.usecase.UpdateDocumentFolder(&folder, uint(id))
+	err = h.usecase.UpdateDocumentFolder(folder, uint(id))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error updating document folder",

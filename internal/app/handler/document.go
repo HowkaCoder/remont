@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -57,7 +58,12 @@ func (dh *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Project ID is required"})
 	}
-
+	docFolderID, err := strconv.Atoi(form.Value["folderID"][0])
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
 	files := form.File["file"]
 	if len(files) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
@@ -77,13 +83,13 @@ func (dh *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName}
+	doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName, DocumentFolderID: uint(docFolderID)}
 
 	if err := dh.usecadse.CreateDocument(&doc); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
 	}
 
-	return c.JSON(doc)
+	return c.Status(http.StatusCreated).JSON(doc)
 }
 
 func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {

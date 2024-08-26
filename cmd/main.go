@@ -58,10 +58,12 @@ func main() {
 	app.Post("/login", login)
 
 	app.Post("/roles", createRole)
+	app.Get("/roles", getAllRoles)
 	app.Post("/permissions", createPermission)
+	app.Get("/permissions", getAllPermissions)
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
-
+	app.Get("/users", userHandler.GetAllUsers)
 	app.Use(authMiddleware)
 
 	app.Get("/api/docs", PermissionMiddleware("get_documents"), docHandler.GetAllDocuments)
@@ -91,21 +93,21 @@ func main() {
 	app.Patch("/api/photos/:id", PermissionMiddleware("update_photo"), photoHandler.UpdatePhoto)
 
 	app.Get("/api/document-folders", PermissionMiddleware("get_all_document_folders"), documentFolderHandler.GetAllDocumentFolders)
-	app.Get("/api/document-folders/:folderID", PermissionMiddleware("get_document_folder_by_folder_id"), documentFolderHandler.GetDocumentFolderByID)
-	app.Get("/api/document-folders/project/id", PermissionMiddleware("get_document_folder_by_project_id"), documentFolderHandler.GetDocumentFoldersByProjectID)
+	app.Get("/api/document-folders/:id", PermissionMiddleware("get_document_folder_by_folder_id"), documentFolderHandler.GetDocumentFolderByID)
+	app.Get("/api/document-folders/project/:id", PermissionMiddleware("get_document_folder_by_project_id"), documentFolderHandler.GetDocumentFoldersByProjectID)
 	app.Post("/api/document-folders", PermissionMiddleware("create_document_folder"), documentFolderHandler.CreateDocumentFolder)
-	app.Patch("/api/document-folders/:id		", PermissionMiddleware("update_document_folder"), documentFolderHandler.UpdateDocumentFolder)
+	app.Patch("/api/document-folders/:id", PermissionMiddleware("update_document_folder"), documentFolderHandler.UpdateDocumentFolder)
 	app.Delete("/api/document-folders/:id", PermissionMiddleware("delete_document_folder"), documentFolderHandler.DeleteDocumentFolder)
 
 	app.Get("/api/photo-folder/", PermissionMiddleware("get_all_photo_folders"), photoFolderHandler.GetAllPhotoFolders)
-	app.Get("/api/photo-folder/:folderID", PermissionMiddleware("get_photo_folder_by_folder_id"), photoFolderHandler.GetPhotoFolderByID)
+	app.Get("/api/photo-folder/:id", PermissionMiddleware("get_photo_folder_by_folder_id"), photoFolderHandler.GetPhotoFolderByID)
 	app.Post("/api/photo-folder/", PermissionMiddleware("create_photo_folder"), photoFolderHandler.CreatePhotoFolder)
 	app.Patch("/api/photo-folder/:id", PermissionMiddleware("update_photo_folder"), photoFolderHandler.UpdatePhotoFolder)
 	app.Delete("/api/photo-folder/:id", PermissionMiddleware("delete_photo_folder"), photoFolderHandler.DeletePhotoFolder)
-	app.Get("/apo/photo-folder/project/:id", PermissionMiddleware("get_photo_folder_by_project_id"), photoFolderHandler.GetPhotoFoldersByProjectID)
+	app.Get("/api/photo-folder/project/:id", PermissionMiddleware("get_photo_folder_by_project_id"), photoFolderHandler.GetPhotoFoldersByProjectID)
 
 	app.Get("/api/chars/project/:id", PermissionMiddleware("get_chars_by_project_id"), charHandler.GetAllCharsByProjectID)
-	app.Post("/api/chars/project/:id", PermissionMiddleware("create_char"), charHandler.CreateChar)
+	app.Post("/api/chars/project", PermissionMiddleware("create_char"), charHandler.CreateChar)
 	app.Patch("/api/chars/:id", PermissionMiddleware("update_char"), charHandler.UpdateChar)
 	app.Delete("/api/chars/:id", PermissionMiddleware("delete_char"), charHandler.DeleteChar)
 
@@ -113,8 +115,8 @@ func main() {
 	app.Post("/api/states", PermissionMiddleware("create_state"), stateHandler.CreateState)
 	app.Patch("/api/states/:id", PermissionMiddleware("update_state"), stateHandler.UpdateState)
 	app.Delete("/api/states/:id", PermissionMiddleware("delete_state"), stateHandler.DeleteState)
-	app.Get("/api/states/user", PermissionMiddleware("create_state_relation"), stateHandler.AssignWorkerToState)
-	app.Delete("/api/states/user", PermissionMiddleware("delete_state_relation"), stateHandler.RemoveWorkerFromState)
+	app.Post("/api/states/add-user", PermissionMiddleware("create_state_relation"), stateHandler.AssignWorkerToState)
+	app.Post("/api/states/remove-user", PermissionMiddleware("delete_state_relation"), stateHandler.RemoveWorkerFromState)
 
 	log.Fatal(app.Listen(":3000"))
 }
@@ -242,4 +244,25 @@ func assignRoleToUser(c *fiber.Ctx) error {
 
 	db.Create(&userRole)
 	return c.Status(fiber.StatusCreated).JSON(userRole)
+}
+
+func getAllRoles(c *fiber.Ctx) error {
+	var roles []entity.Role
+	if err := db.Find(&roles).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(roles)
+}
+
+func getAllPermissions(c *fiber.Ctx) error {
+	var permissions []entity.Permission
+	if err := db.Find(&permissions).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+	return c.JSON(permissions)
 }

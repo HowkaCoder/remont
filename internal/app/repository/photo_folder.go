@@ -55,7 +55,13 @@ func (pr *PhotoFolderRepository) UpdatePhotoFolder(folder *entity.PhotoFolder, i
 	if err := pr.db.First(&eFolder, id).Error; err != nil {
 		return err
 	}
-	return pr.db.Save(folder).Error
+	if folder.Title != "" {
+		eFolder.Title = folder.Title
+	}
+	if folder.ProjectID != 0 {
+		eFolder.ProjectID = folder.ProjectID
+	}
+	return pr.db.Save(eFolder).Error
 }
 
 func (pr *PhotoFolderRepository) DeletePhotoFolder(id uint) error {
