@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/HowkaCoder/remont/internal/app/entity"
 	"gorm.io/gorm"
 )
@@ -57,13 +59,13 @@ func (dr *documentFolderRepository) UpdateDocumentFolder(folder *entity.Document
 		return err
 	}
 
-	if folder.Title == "" {
+	if folder.Title != "" {
 		eFolder.Title = folder.Title
 	}
-	if folder.ProjectID == 0 {
+	if folder.ProjectID != 0 {
 		eFolder.ProjectID = folder.ProjectID
 	}
-
+	log.Println(folder)
 	return dr.db.Save(eFolder).Error
 }
 

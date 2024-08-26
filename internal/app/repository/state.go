@@ -29,7 +29,7 @@ func (sr *stateRepository) CreateState(state *entity.State) error {
 
 func (sr *stateRepository) GetStateByID(id uint) (*entity.State, error) {
 	var state entity.State
-	if err := sr.db.First(&state, id).Error; err != nil {
+	if err := sr.db.Preload("Workers").First(&state, id).Error; err != nil {
 		return nil, err
 	}
 	return &state, nil
@@ -37,9 +37,12 @@ func (sr *stateRepository) GetStateByID(id uint) (*entity.State, error) {
 
 func (sr *stateRepository) GetStatesByProjectID(projectID uint) ([]entity.State, error) {
 	var states []entity.State
-	if err := sr.db.Where("project_id =?", projectID).Find(&states).Error; err != nil {
+	if err := sr.db.Preload("Workers").Where("project_id =?", projectID).Find(&states).Error; err != nil {
 		return nil, err
 	}
+	//	sr.db.Model(&states).Association("Users").Clear() // Очистка всех связей с пользователями
+	//	sr.db.Model(&states).Association("Users").Append(newUsers...) // Если нужно обновить список пользователей
+
 	return states, nil
 }
 
@@ -60,6 +63,19 @@ func (sr *stateRepository) AssignWorkerToState(stateID, userID uint) error {
 }
 
 func (sr *stateRepository) RemoveWorkerFromState(stateID, userID uint) error {
-	return sr.db.Where("state_id = ? AND user_id = ?", stateID, userID).Delete(&entity.StateUser{}).Error
 
+	//return sr.db.Where("state_id = ? AND user_id = ?", stateID, userID).Delete(&entity.StateUser{}).Error
+
+	if err := sr.db.Where("user_id = ? AND state_id = ?", userID, stateID).Delete(&entity.StateUser{}).Error; err != nil {
+		return err
+	}
+
+	var state entity.State
+	if err := sr.db.First(&state, stateID).Error; err != nil {
+		return err
+	}
+
+	sr.db.Model(&state).Association("Workers").Clear()
+
+	return nil
 }

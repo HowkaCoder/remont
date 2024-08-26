@@ -114,23 +114,34 @@ func (h *StateHandler) DeleteState(c *fiber.Ctx) error {
 }
 
 func (h *StateHandler) AssignWorkerToState(c *fiber.Ctx) error {
-	userId, err := strconv.Atoi(c.Query("userID"))
-	if err != nil {
+	/*	userId, err := strconv.Atoi(c.Query("userID"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid user ID",
+				"error":   err.Error(),
+			})
+		}
+
+		stateID, err := strconv.Atoi(c.Query("stateID"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid state ID",
+				"error":   err.Error(),
+			})
+		}
+	**/
+	var request struct {
+		UserID  uint `json:"userID"`
+		StateID uint `json:"stateID"`
+	}
+
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid user ID",
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 	}
 
-	stateID, err := strconv.Atoi(c.Query("stateID"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid state ID",
-			"error":   err.Error(),
-		})
-	}
-
-	if err := h.usecase.AssignWorkerToState(uint(stateID), uint(userId)); err != nil {
+	if err := h.usecase.AssignWorkerToState(uint(request.StateID), uint(request.UserID)); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error assigning worker to state",
 			"error":   err.Error(),
@@ -144,23 +155,36 @@ func (h *StateHandler) AssignWorkerToState(c *fiber.Ctx) error {
 }
 
 func (h *StateHandler) RemoveWorkerFromState(c *fiber.Ctx) error {
-	userId, err := strconv.Atoi(c.Query("userID"))
-	if err != nil {
+	/**
+		userId, err := strconv.Atoi(c.Query("userID"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid user ID",
+				"error":   err.Error(),
+			})
+		}
+
+		stateID, err := strconv.Atoi(c.Query("stateID"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid state ID",
+				"error":   err.Error(),
+			})
+		}
+	**/
+
+	var request struct {
+		UserID  uint `json:"userID"`
+		StateID uint `json:"stateID"`
+	}
+
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid user ID",
-			"error":   err.Error(),
+			"Error": err.Error(),
 		})
 	}
 
-	stateID, err := strconv.Atoi(c.Query("stateID"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid state ID",
-			"error":   err.Error(),
-		})
-	}
-
-	if err := h.usecase.RemoveWorkerFromState(uint(stateID), uint(userId)); err != nil {
+	if err := h.usecase.RemoveWorkerFromState(uint(request.StateID), uint(request.UserID)); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error assigning worker to state",
 			"error":   err.Error(),
