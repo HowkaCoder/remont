@@ -29,7 +29,7 @@ func NewProjectRepository(db *gorm.DB) *projectRepository {
 
 func (pr *projectRepository) GetAllProjects() ([]entity.Project, error) {
 	var projects []entity.Project
-	if err := pr.db.Preload("Members.User").Preload("Members.Role").Preload("States").Preload("DocumentFolders").Preload("PhotoFolders").Preload("Chars").Find(&projects).Error; err != nil {
+	if err := pr.db.Preload("Members.User").Preload("Members.Role").Preload("States").Preload("DocumentFolders.Documents").Preload("PhotoFolders").Preload("Chars").Find(&projects).Error; err != nil {
 		return nil, err
 	}
 	return projects, nil

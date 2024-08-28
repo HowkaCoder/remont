@@ -3,9 +3,8 @@ package internal
 import (
 	"log"
 
-	"gorm.io/driver/sqlite"
-
 	"github.com/HowkaCoder/remont/internal/app/entity"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -13,10 +12,13 @@ var DB *gorm.DB
 
 func Init() *gorm.DB {
 	var err error
+	// postgresql://root:OumUpk50PxWzWAu6Hni07HHvmdNj9SzE@dpg-cr7j2sjv2p9s73a556b0-a/remont
 	//	dsn := "root:AvmOCFLHdwIkOcWYyXzGhuDvuTToYjsM@tcp(viaduct.proxy.rlwy.net:38909)/railway?charset=utf8mb4&parseTime=True&loc=Local"
+	//postgresql://root:OumUpk50PxWzWAu6Hni07HHvmdNj9SzE@dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com/remont/
 	//DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	DB, err := gorm.Open(sqlite.Open("database/database.db"), &gorm.Config{})
+	dsn := "host=dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com user=root password=OumUpk50PxWzWAu6Hni07HHvmdNj9SzE dbname=remont port=5432 "
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	//	DB, err := gorm.Open(sqlite.Open("./database/database.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
