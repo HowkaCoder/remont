@@ -109,8 +109,98 @@ func Init() *gorm.DB {
 		}
 
 		DB.Create(&rolePermission)
+
+		rolePermission1 := entity.RolePermission{
+			RoleID:       2,
+			PermissionID: permission.ID,
+		}
+
+		DB.Create(&rolePermission1)
+
+		rolePermission3 := entity.RolePermission{
+			RoleID:       3,
+			PermissionID: permission.ID,
+		}
+
+		DB.Create(&rolePermission3)
+
+		rolePermission2 := entity.RolePermission{
+			RoleID:       4,
+			PermissionID: permission.ID,
+		}
+
+		DB.Create(&rolePermission2)
+
+	}
+	userRole := entity.UserRole{
+		UserID: 1,
+		RoleID: 1,
 	}
 
+	DB.Create(&userRole)
+
+	user1 := entity.User{
+		FirstName:   "user1",
+		LastName:    "Khojaniyazov",
+		MiddleName:  "Polatovich",
+		Email:       "user1@gmail.com",
+		Password:    "1q2w3e4r5t6y",
+		PhoneNumber: "32e23e23e23e2",
+	}
+	DB.Create(&user1)
+
+	user2 := entity.User{
+		FirstName:   "User2",
+		LastName:    "dewiojdwiejdoiwev",
+		MiddleName:  "Polatovich",
+		Email:       "user2@gmail.com",
+		Password:    "1q2w3e4r5t6y",
+		PhoneNumber: "32e23e23e23e2",
+	}
+	DB.Create(&user2)
+
+	user3 := entity.User{
+		FirstName:   "User3",
+		LastName:    "Khojaniyazov",
+		MiddleName:  "Polatovich",
+		Email:       "user3@gmail.com",
+		Password:    "1q2w3e4r5t6y",
+		PhoneNumber: "32e23e23e23e2",
+	}
+	DB.Create(&user3)
+
+	user4 := entity.User{
+		FirstName:   "User4",
+		LastName:    "Khojaniyazov",
+		MiddleName:  "Polatovich",
+		Email:       "User4@gmail.com",
+		Password:    "1q2w3e4r5t6y",
+		PhoneNumber: "32e23e23e23e2",
+	}
+	DB.Create(&user4)
+
+	role1 := entity.Role{
+		Name: "manager",
+	}
+
+	DB.Create(&role1)
+
+	role2 := entity.Role{
+		Name: "director",
+	}
+
+	DB.Create(role2)
+
+	role3 := entity.Role{
+		Name: "client",
+	}
+	DB.Create(&role3)
+
+	role4 := entity.Role{
+		Name: "worker",
+	}
+
+	DB.Create(&role4)
 	return DB
 
 }
