@@ -79,6 +79,9 @@ func main() {
 	app.Get("/api/projects/:id", PermissionMiddleware("get_project_by_id"), projectHandler.GetProjectByID)
 	app.Delete("/api/projects/:id", PermissionMiddleware("delete_project"), projectHandler.DeleteProject)
 
+	app.Get("/api/project/workers/:id", PermissionMiddleware("get_projects_by_worker_id"), projectHandler.GetAllProjectsAsAWorker)
+	app.Get("/api/project/clients/:id", PermissionMiddleware("get_projects_by_client_id"), projectHandler.GetAllProjectsAsAClient)
+
 	app.Get("/api/project-roles", PermissionMiddleware("get_all_project_roles"), projectHandler.GetAllProjectRole)
 	app.Post("/api/project-roles", PermissionMiddleware("create_project_role"), projectHandler.CreateProjectRole)
 	app.Patch("/api/project-roles/:id", PermissionMiddleware("update_project_role"), projectHandler.UpdateProjectRole)
@@ -112,6 +115,7 @@ func main() {
 	app.Delete("/api/chars/:id", PermissionMiddleware("delete_char"), charHandler.DeleteChar)
 
 	app.Get("/api/states/:id", PermissionMiddleware("get_states_by_project_id"), stateHandler.GetStatesByProjectID)
+	app.Get("/api/states/worker/:id", PermissionMiddleware("get_states_by_worker_id"), stateHandler.GetStatesByWorkerID)
 	app.Post("/api/states", PermissionMiddleware("create_state"), stateHandler.CreateState)
 	app.Patch("/api/states/:id", PermissionMiddleware("update_state"), stateHandler.UpdateState)
 	app.Delete("/api/states/:id", PermissionMiddleware("delete_state"), stateHandler.DeleteState)

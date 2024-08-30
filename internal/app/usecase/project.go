@@ -12,6 +12,10 @@ type ProjectUsecase interface {
 	UpdateProject(project *entity.Project, id uint) error
 	DeleteProject(id uint) error
 
+	GetAllProjectsAsAClient(id uint) ([]entity.Project, error)
+
+	GetAllProjectsAsAWorker(id uint) ([]entity.Project, error)
+
 	GetAllProjectRoles() ([]entity.ProjectRole, error)
 	GetProjectRoleByID(id uint) (*entity.ProjectRole, error)
 	CreateProjectRole(projectRole *entity.ProjectRole) error
@@ -25,6 +29,14 @@ type projectUsecase struct {
 
 func NewProjectUsecase(projectRepository repository.ProjectRepository) *projectUsecase {
 	return &projectUsecase{projectRepository: projectRepository}
+}
+
+func (pu *projectUsecase) GetAllProjectsAsAClient(id uint) ([]entity.Project, error) {
+	return pu.projectRepository.GetAllProjectsAsAClient(id)
+}
+
+func (pu *projectUsecase) GetAllProjectsAsAWorker(id uint) ([]entity.Project, error) {
+	return pu.projectRepository.GetAllProjectsAsAWorker(id)
 }
 
 func (pu *projectUsecase) GetAllProjects() ([]entity.Project, error) {

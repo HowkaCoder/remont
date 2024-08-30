@@ -10,6 +10,8 @@ type StateUsecase interface {
 	GetStateByID(id uint) (*entity.State, error)
 	GetStatesByProjectID(projectID uint) ([]entity.State, error)
 	UpdateState(state *entity.State) error
+
+	GetStatesByWorkerID(id uint) ([]entity.State, error)
 	DeleteState(id uint) error
 	AssignWorkerToState(stateID, userID uint) error
 	RemoveWorkerFromState(stateID, userID uint) error
@@ -21,6 +23,10 @@ type stateUsecase struct {
 
 func NewStateUsecase(repo repository.StateRepository) *stateUsecase {
 	return &stateUsecase{repo: repo}
+}
+
+func (su *stateUsecase) GetStatesByWorkerID(id uint) ([]entity.State, error) {
+	return su.repo.GetStatesByWorkerID(id)
 }
 
 func (su *stateUsecase) CreateState(state *entity.State) error {

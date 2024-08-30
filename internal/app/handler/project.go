@@ -16,6 +16,42 @@ func NewProjectHandler(usecase usecase.ProjectUsecase) *ProjectHandler {
 	return &ProjectHandler{usecase}
 }
 
+func (h *ProjectHandler) GetAllProjectsAsAClient(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	projects, err := h.usecase.GetAllProjectsAsAClient(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(projects)
+}
+
+func (h *ProjectHandler) GetAllProjectsAsAWorker(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	projects, err := h.usecase.GetAllProjectsAsAWorker(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(projects)
+}
+
 func (h *ProjectHandler) GetAllProjects(c *fiber.Ctx) error {
 	projects, err := h.usecase.GetAllProjects()
 	if err != nil {
