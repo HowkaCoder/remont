@@ -12,6 +12,10 @@ type ProjectRepository interface {
 	UpdateProject(project *entity.Project, id uint) error
 	DeleteProject(id uint) error
 
+	GetAllProjectsAsAClient(id uint) ([]entity.Project, error)
+
+	GetAllProjectsAsAWorker(id uint) ([]entity.Project, error)
+
 	GetAllProjectRoles() ([]entity.ProjectRole, error)
 	GetProjectRoleByID(id uint) (*entity.ProjectRole, error)
 	CreateProjectRole(projectRole *entity.ProjectRole) error
@@ -25,6 +29,41 @@ type projectRepository struct {
 
 func NewProjectRepository(db *gorm.DB) *projectRepository {
 	return &projectRepository{db: db}
+}
+
+func (pr *projectRepository) GetAllProjectsAsAWorker(id uint) ([]entity.Project, error) {
+	var projectRoles []entity.ProjectRole
+	if err := pr.db.Where("user_id = ? AND role_id = ?", id, 1).Find(&projectRoles).Error; err != nil {
+		return nil, err
+	}
+
+	var projects []entity.Project
+	for _, projectRole := range projectRoles {
+		var project entity.Project
+		if err := pr.db.First(&project, projectRole.ProjectID).Error; err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}
+func (pr *projectRepository) GetAllProjectsAsAClient(id uint) ([]entity.Project, error) {
+	var projectRoles []entity.ProjectRole
+	if err := pr.db.Where("user_id = ? AND role_id = ?", id, 3).Find(&projectRoles).Error; err != nil {
+		return nil, err
+	}
+
+	var projects []entity.Project
+	for _, projectRole := range projectRoles {
+		var project entity.Project
+		if err := pr.db.First(&project, projectRole.ProjectID).Error; err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
 }
 
 func (pr *projectRepository) GetAllProjects() ([]entity.Project, error) {

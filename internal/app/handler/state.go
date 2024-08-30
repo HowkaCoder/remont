@@ -16,6 +16,24 @@ func NewStateHandler(usecase usecase.StateUsecase) *StateHandler {
 	return &StateHandler{usecase: usecase}
 }
 
+func (h *StateHandler) GetStatesByWorkerID(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	states, err := h.usecase.GetStatesByWorkerID(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(states)
+}
+
 func (h *StateHandler) GetStatesByProjectID(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {

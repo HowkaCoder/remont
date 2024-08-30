@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/HowkaCoder/remont/internal/app/entity"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +16,9 @@ func Init() *gorm.DB {
 	//	dsn := "root:AvmOCFLHdwIkOcWYyXzGhuDvuTToYjsM@tcp(viaduct.proxy.rlwy.net:38909)/railway?charset=utf8mb4&parseTime=True&loc=Local"
 	//postgresql://root:OumUpk50PxWzWAu6Hni07HHvmdNj9SzE@dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com/remont/
 	//DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	dsn := "host=dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com user=root password=OumUpk50PxWzWAu6Hni07HHvmdNj9SzE dbname=remont port=5432 "
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	//	DB, err := gorm.Open(sqlite.Open("./database/database.db"), &gorm.Config{})
+	//	dsn := "host=dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com user=root password=OumUpk50PxWzWAu6Hni07HHvmdNj9SzE dbname=remont port=5432 "
+	//	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err := gorm.Open(sqlite.Open("./database/database.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,6 +44,35 @@ func Init() *gorm.DB {
 	)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	/*	role1 := entity.Role{
+			Name: "manager",
+		}
+
+		DB.Create(role1)
+
+		role2 := entity.Role{
+			Name: "director",
+		}
+
+		DB.Create(role2)
+
+		role3 := entity.Role{
+			Name: "client",
+		}
+		DB.Create(role3)
+
+		role4 := entity.Role{
+			Name: "worker",
+		}
+
+		DB.Create(role4)*/
+
+	roles := []entity.Role{
+		{Name: "worker"},
+		{Name: "manager"},
+		{Name: "client"},
 	}
 
 	permissions := []entity.Permission{
@@ -98,109 +127,217 @@ func Init() *gorm.DB {
 		{Name: "delete_state"},
 		{Name: "create_state_relation"},
 		{Name: "delete_state_relation"},
+		{Name: "get_projects_by_worker_id"},
+		{Name: "get_projects_by_client_id"},
+		//	{Name: "get_states_by_worker_id"},
 	}
-
-	for _, permission := range permissions {
-		DB.Create(&permission)
-
-		rolePermission := entity.RolePermission{
-			RoleID:       1,
-			PermissionID: permission.ID,
-		}
-
-		DB.Create(&rolePermission)
-
-		rolePermission1 := entity.RolePermission{
-			RoleID:       2,
-			PermissionID: permission.ID,
-		}
-
-		DB.Create(&rolePermission1)
-
-		rolePermission3 := entity.RolePermission{
-			RoleID:       3,
-			PermissionID: permission.ID,
-		}
-
-		DB.Create(&rolePermission3)
-
-		rolePermission2 := entity.RolePermission{
-			RoleID:       4,
-			PermissionID: permission.ID,
-		}
-
-		DB.Create(&rolePermission2)
-
-	}
-	userRole := entity.UserRole{
-		UserID: 1,
-		RoleID: 1,
-	}
-
-	DB.Create(&userRole)
 
 	user1 := entity.User{
-		FirstName:   "user1",
+		FirstName:   "worker",
 		LastName:    "Khojaniyazov",
 		MiddleName:  "Polatovich",
-		Email:       "user1@gmail.com",
-		Password:    "1q2w3e4r5t6y",
+		Email:       "worker@gmail.com",
+		Password:    "worker",
 		PhoneNumber: "32e23e23e23e2",
 	}
 	DB.Create(&user1)
 
 	user2 := entity.User{
-		FirstName:   "User2",
+		FirstName:   "manager",
 		LastName:    "dewiojdwiejdoiwev",
 		MiddleName:  "Polatovich",
-		Email:       "user2@gmail.com",
-		Password:    "1q2w3e4r5t6y",
+		Email:       "manager@gmail.com",
+		Password:    "manager",
 		PhoneNumber: "32e23e23e23e2",
 	}
 	DB.Create(&user2)
 
 	user3 := entity.User{
-		FirstName:   "User3",
+		FirstName:   "client",
 		LastName:    "Khojaniyazov",
 		MiddleName:  "Polatovich",
-		Email:       "user3@gmail.com",
-		Password:    "1q2w3e4r5t6y",
+		Email:       "client@gmail.com",
+		Password:    "client",
 		PhoneNumber: "32e23e23e23e2",
 	}
 	DB.Create(&user3)
 
-	user4 := entity.User{
-		FirstName:   "User4",
-		LastName:    "Khojaniyazov",
-		MiddleName:  "Polatovich",
-		Email:       "User4@gmail.com",
-		Password:    "1q2w3e4r5t6y",
-		PhoneNumber: "32e23e23e23e2",
+	for _, permission := range permissions {
+		DB.Create(&permission)
+
+		rolePermission := entity.RolePermission{
+			RoleID:       2,
+			PermissionID: permission.ID,
+		}
+
+		DB.Create(&rolePermission)
+		/*
+			rolePermission1 := entity.RolePermission{
+				RoleID:       2,
+				PermissionID: permission.ID,
+			}
+
+			DB.Create(&rolePermission1)
+
+			rolePermission3 := entity.RolePermission{
+				RoleID:       3,
+				PermissionID: permission.ID,
+			}
+
+			DB.Create(&rolePermission3)
+
+			rolePermission2 := entity.RolePermission{
+				RoleID:       4,
+				PermissionID: permission.ID,
+			}
+
+			DB.Create(&rolePermission2)
+		*/
+
 	}
-	DB.Create(&user4)
 
-	role1 := entity.Role{
-		Name: "manager",
+	for _, role := range roles {
+		DB.Create(&role)
+
+		userRole := entity.UserRole{
+			UserID: role.ID,
+			RoleID: role.ID,
+		}
+
+		DB.Create(&userRole)
 	}
 
-	DB.Create(&role1)
+	WorkerRolePermissions := []entity.RolePermission{
+		{
+			RoleID:       1,
+			PermissionID: 17,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 18,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 19,
+		},
 
-	role2 := entity.Role{
-		Name: "director",
+		{
+			RoleID:       1,
+			PermissionID: 20,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 21,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 22,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 36,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 37,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 38,
+		},
+
+		{
+			RoleID:       1,
+			PermissionID: 39,
+		},
+
+		{
+			RoleID:       1,
+			PermissionID: 40,
+		},
+
+		{
+			RoleID:       1,
+			PermissionID: 41,
+		},
+
+		{
+			RoleID:       1,
+			PermissionID: 42,
+		},
+		{
+			RoleID:       1,
+			PermissionID: 45,
+		},
 	}
 
-	DB.Create(role2)
-
-	role3 := entity.Role{
-		Name: "client",
-	}
-	DB.Create(&role3)
-
-	role4 := entity.Role{
-		Name: "worker",
+	for _, workerRolePermission := range WorkerRolePermissions {
+		DB.Create(&workerRolePermission)
 	}
 
-	DB.Create(&role4)
+	ClientRolePermissions := []entity.RolePermission{
+		{
+			RoleID:       3,
+			PermissionID: 1,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 4,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 5,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 17,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 46,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 47,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 18,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 19,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 20,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 21,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 22,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 39,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 40,
+		},
+		{
+			RoleID:       3,
+			PermissionID: 41,
+		},
+	}
+	for _, clientRolePermission := range ClientRolePermissions {
+		DB.Create(clientRolePermission)
+	}
+
+	DB.Create(&entity.Permission{Name: "get_states_by_worker_id"})
 	return DB
 
 }

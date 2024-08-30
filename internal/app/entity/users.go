@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	ID            uint   `gorm:"primaryKey"`
+	ID            uint `gorm:"primaryKey"`
 	FirstName     string
 	LastName      string
 	MiddleName    string
@@ -15,15 +15,15 @@ type User struct {
 	UserType      string
 	DeactivatedAt *string
 
-	Roles         []Role `gorm:"many2many:user_roles"`
-  
-    Projects      []ProjectRole `gorm:"foreignKey:UserID"`
+	Roles []Role `gorm:"many2many:user_roles"`
+
+	Projects []ProjectRole `gorm:"foreignKey:UserID"`
 }
 
 type Role struct {
 	gorm.Model
 	ID          uint         `gorm:"primaryKey"`
-	Name        string       `gorm:"unique"`
+	Name        string       `json:"name"`
 	Permissions []Permission `gorm:"many2many:role_permissions"`
 }
 
@@ -44,5 +44,3 @@ type RolePermission struct {
 	RoleID       uint
 	PermissionID uint
 }
-
-

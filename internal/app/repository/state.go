@@ -11,6 +11,9 @@ type StateRepository interface {
 	GetStatesByProjectID(projectID uint) ([]entity.State, error)
 	UpdateState(state *entity.State) error
 	DeleteState(id uint) error
+
+	GetStatesByWorkerID(id uint) ([]entity.State, error)
+
 	AssignWorkerToState(stateID, userID uint) error
 	RemoveWorkerFromState(stateID, userID uint) error
 }
@@ -21,6 +24,24 @@ type stateRepository struct {
 
 func NewStateRepository(db *gorm.DB) *stateRepository {
 	return &stateRepository{db: db}
+}
+
+func (sr *stateRepository) GetStatesByWorkerID(id uint) ([]entity.State, error) {
+	var StateUsers []entity.StateUser
+	if err := sr.db.Where("user_id = ?", id).Find(&StateUsers).Error; err != nil {
+		return nil, err
+	}
+
+	var states []entity.State
+	for _, stateUser := range StateUsers {
+		var state entity.State
+		if err := sr.db.First(&state, stateUser.StateID).Error; err != nil {
+			return nil, err
+		}
+		states = append(states, state)
+	}
+
+	return states, nil
 }
 
 func (sr *stateRepository) CreateState(state *entity.State) error {
