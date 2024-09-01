@@ -56,7 +56,7 @@ func main() {
 	// Роуты для регистрации и логина
 	app.Post("/register", userHandler.CreateUser)
 	app.Post("/login", login)
-
+	app.Delete("/boom", clearDatabase)
 	app.Post("/roles", createRole)
 	app.Get("/roles", getAllRoles)
 	app.Post("/permissions", createPermission)
@@ -269,4 +269,39 @@ func getAllPermissions(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(permissions)
+}
+
+func clearDatabase(c *fiber.Ctx) error {
+
+	err := db.Migrator().DropTable(
+		&entity.User{},
+		&entity.Role{},
+		&entity.UserRole{},
+		&entity.Permission{},
+		&entity.RolePermission{},
+		&entity.Document{},
+		&entity.Project{},
+		&entity.ProjectRole{},
+		&entity.DocumentFolder{},
+		&entity.PhotoFolder{},
+		&entity.Photo{},
+		&entity.Char{},
+		&entity.State{},
+		&entity.StateUser{},
+	)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to clear database",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Database cleared successfully",
+	})
+	db = internal.Init()
+
+	return c.JSON(fiber.Map{
+		"message": "database successfully droped",
+	})
 }
