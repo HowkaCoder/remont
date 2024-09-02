@@ -253,7 +253,7 @@ func assignRoleToUser(c *fiber.Ctx) error {
 
 func getAllRoles(c *fiber.Ctx) error {
 	var roles []entity.Role
-	if err := db.Find(&roles).Error; err != nil {
+	if err := db.Preload("Permissions").Find(&roles).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"Error": err.Error(),
 		})
