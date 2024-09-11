@@ -26,7 +26,7 @@ func NewUserRepository(db *gorm.DB) *userRepository{
 
 func (ur *userRepository) GetAllUsers() ([]entity.User , error) {
 	var users []entity.User
-	if err := ur.db.Preload("Roles").Preload("Permissions").Find(&users).Error; err != nil {
+	if err := ur.db.Find(&users).Error; err != nil {
 		return nil,err
 	}
 
