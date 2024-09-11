@@ -18,7 +18,7 @@ func NewUserHandler(usecase usecase.UserUsecase) *UserHandler{
 func (uh *UserHandler) GetAllUsers(c *fiber.Ctx) error {
 	users , err := uh.usecase.GetAllUsers()
 	if err != nil {
-		return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"Error":err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error":err.Error()})
 	}
 
 	return c.JSON(users)
