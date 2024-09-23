@@ -68,7 +68,7 @@ func (pr *projectRepository) GetAllProjectsAsAClient(id uint) ([]entity.Project,
 
 func (pr *projectRepository) GetAllProjects() ([]entity.Project, error) {
 	var projects []entity.Project
-	if err := pr.db.Preload("Members.User").Preload("Members.Role").Preload("States.Workers").Preload("DocumentFolders.Documents").Preload("PhotoFolders").Preload("Chars").Preload("PhotoFolder.Photos").Find(&projects).Error; err != nil {
+	if err := pr.db.Preload("Members.User").Preload("Members.Role").Preload("States.Workers").Preload("DocumentFolders.Documents").Preload("PhotoFolders").Preload("Chars").Preload("PhotoFolders.Photos").Find(&projects).Error; err != nil {
 		return nil, err
 	}
 	return projects, nil
@@ -94,6 +94,14 @@ func (pr *projectRepository) UpdateProject(project *entity.Project, id uint) err
 
 	if project.Title != "" {
 		eProject.Title = project.Title
+	}
+
+	if project.Image != "" {
+		eProject.Image = project.Image
+	}
+
+	if project.Status != "" {
+		eProject.Status = project.Status
 	}
 
 	return pr.db.Save(eProject).Error

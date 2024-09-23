@@ -213,3 +213,75 @@ func (h *StateHandler) RemoveWorkerFromState(c *fiber.Ctx) error {
 		"message": "user successfully removed",
 	})
 }
+
+func (h *StateHandler) CreateRepairDetails(c *fiber.Ctx) error {
+	var detail *entity.RepairDetails
+	if err := c.BodyParser(&detail); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	if err := h.usecase.CreateRepairDetails(detail); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "created successfully",
+	})
+}
+
+func (h *StateHandler) GetRepairDetailsByProjectID(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	detail, err := h.usecase.GetRepairDetailsByProjectID(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(detail)
+}
+
+func (h *StateHandler) UpdateRepairDetail(c *fiber.Ctx) error {
+	var detail *entity.RepairDetails
+
+	if err := c.BodyParser(&detail); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	if err := h.usecase.UpdateRepairDetails(detail); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "successfully updated",
+	})
+}
+
+func (h *StateHandler) DeleteRepairDetail(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	h.usecase.DeleteRepairDetails(uint(id))
+
+	return c.JSON(fiber.Map{
+		"message": "successfully deleted",
+	})
+}

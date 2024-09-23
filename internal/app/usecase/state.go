@@ -15,6 +15,11 @@ type StateUsecase interface {
 	DeleteState(id uint) error
 	AssignWorkerToState(stateID, userID uint) error
 	RemoveWorkerFromState(stateID, userID uint) error
+
+	CreateRepairDetails(details *entity.RepairDetails) error
+	GetRepairDetailsByProjectID(projectID uint) (*entity.RepairDetails, error)
+	UpdateRepairDetails(details *entity.RepairDetails) error
+	DeleteRepairDetails(id uint) error
 }
 
 type stateUsecase struct {
@@ -56,4 +61,20 @@ func (su *stateUsecase) AssignWorkerToState(stateID, userID uint) error {
 
 func (su *stateUsecase) RemoveWorkerFromState(stateID, userID uint) error {
 	return su.repo.RemoveWorkerFromState(stateID, userID)
+}
+
+func (su *stateUsecase) CreateRepairDetails(details *entity.RepairDetails) error {
+	return su.repo.CreateRepairDetails(details)
+}
+
+func (su *stateUsecase) GetRepairDetailsByProjectID(projectID uint) (*entity.RepairDetails, error) {
+	return su.repo.GetRepairDetailsByProjectID(projectID)
+}
+
+func (su *stateUsecase) UpdateRepairDetails(details *entity.RepairDetails) error {
+	return su.repo.UpdateRepairDetails(details)
+}
+
+func (su *stateUsecase) DeleteRepairDetails(id uint) error {
+	return su.repo.DeleteRepairDetails(id)
 }

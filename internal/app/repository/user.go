@@ -6,40 +6,37 @@ import (
 )
 
 type UserRepository interface {
-	GetAllUsers()	([]entity.User , error)
-	GetUserByID(id uint) (*entity.User , error)
-	CreateUser(user *entity.User) error 
-	UpdateUser(user *entity.User , id uint) error 
-	DeleteUser(id uint) error 
-
-
-
+	GetAllUsers() ([]entity.User, error)
+	GetUserByID(id uint) (*entity.User, error)
+	CreateUser(user *entity.User) error
+	UpdateUser(user *entity.User, id uint) error
+	DeleteUser(id uint) error
 }
 
 type userRepository struct {
-	db 	*gorm.DB
+	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *userRepository{
-	return &userRepository{db:db}
+func NewUserRepository(db *gorm.DB) *userRepository {
+	return &userRepository{db: db}
 }
 
-func (ur *userRepository) GetAllUsers() ([]entity.User , error) {
+func (ur *userRepository) GetAllUsers() ([]entity.User, error) {
 	var users []entity.User
-	if err := ur.db.Find(&users).Error; err != nil {
-		return nil,err
+	if err := ur.db.Preload("Roles").Preload("Projects").Find(&users).Error; err != nil {
+		return nil, err
 	}
 
-	return users,nil
+	return users, nil
 }
 
-func (ur *userRepository) GetUserByID(id uint) (*entity.User , error) {
+func (ur *userRepository) GetUserByID(id uint) (*entity.User, error) {
 	var user *entity.User
-	if err := ur.db.First(&user , id).Error; err != nil {
-		return nil,err
+	if err := ur.db.First(&user, id).Error; err != nil {
+		return nil, err
 	}
 
-	return user,nil
+	return user, nil
 }
 
 func (ur *userRepository) CreateUser(user *entity.User) error {
@@ -47,11 +44,11 @@ func (ur *userRepository) CreateUser(user *entity.User) error {
 		return err
 	}
 	return nil
-} 
+}
 
-func (ur *userRepository) UpdateUser(user *entity.User , id uint) error {
+func (ur *userRepository) UpdateUser(user *entity.User, id uint) error {
 	var eUser *entity.User
-	if err := ur.db.First(&eUser , id).Error; err != nil {
+	if err := ur.db.First(&eUser, id).Error; err != nil {
 		return err
 	}
 
@@ -62,7 +59,7 @@ func (ur *userRepository) UpdateUser(user *entity.User , id uint) error {
 	} else if user.LastName != "" {
 		eUser.LastName = user.LastName
 	} else if user.Email != "" {
-		eUser.Email = user.Email 
+		eUser.Email = user.Email
 	} else if user.PhoneNumber != "" {
 		eUser.PhoneNumber = user.PhoneNumber
 	} else if user.Password != "" {
@@ -78,7 +75,7 @@ func (ur *userRepository) UpdateUser(user *entity.User , id uint) error {
 
 func (ur *userRepository) DeleteUser(id uint) error {
 	var user *entity.User
-	if err := ur.db.First(&user , id).Error; err != nil {
+	if err := ur.db.First(&user, id).Error; err != nil {
 		return err
 	}
 
@@ -88,5 +85,3 @@ func (ur *userRepository) DeleteUser(id uint) error {
 
 	return nil
 }
-
-
