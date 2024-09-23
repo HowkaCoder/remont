@@ -1,6 +1,9 @@
 package entity
 
-import "gorm.io/gorm"
+import (
+	"github.com/golang-jwt/jwt"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -43,4 +46,13 @@ type RolePermission struct {
 	gorm.Model
 	RoleID       uint
 	PermissionID uint
+}
+
+type JwtClaims struct {
+	UserID    uint   `json:"user_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Role      string `json:"role"`
+	Projects  []uint `json:"project"`
+	jwt.StandardClaims
 }

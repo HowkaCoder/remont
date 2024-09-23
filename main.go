@@ -1,16 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/HowkaCoder/remont/internal"
 	"github.com/HowkaCoder/remont/internal/app/entity"
 	"github.com/HowkaCoder/remont/internal/app/handler"
 	"github.com/HowkaCoder/remont/internal/app/repository"
 	"github.com/HowkaCoder/remont/internal/app/usecase"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +69,22 @@ func main() {
 		}
 		return c.Next()
 	})
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Ошибка при получении текущей директории:", err)
+		return
+
+	}
+	imagesDir := filepath.Join(currentDir, "uploads/photos/")
+
+	documentDir := filepath.Join(currentDir, "uploads/documents/")
+	// Статический обработчик для папки с изображениями
+	app.Static("/uploads/photos", imagesDir)
+
+	app.Static("/uploads/documents", documentDir)
+
+	app.Get("/get-profile", ProtectedRoute)
 	// Роуты для регистрации и логина
 	app.Post("/register", userHandler.CreateUser)
 	app.Post("/login", login)
@@ -75,6 +96,7 @@ func main() {
 	app.Post("/roles/assign", assignPermissionToRole)
 	app.Post("/users/assign-role", assignRoleToUser)
 	app.Get("/users", userHandler.GetAllUsers)
+	app.Get("/api/projects/users/:id", getUsersByProjectID)
 	app.Use(authMiddleware)
 
 	app.Get("/api/docs", PermissionMiddleware("get_documents"), docHandler.GetAllDocuments)
@@ -133,6 +155,11 @@ func main() {
 	app.Post("/api/states/add-user", PermissionMiddleware("create_state_relation"), stateHandler.AssignWorkerToState)
 	app.Post("/api/states/remove-user", PermissionMiddleware("delete_state_relation"), stateHandler.RemoveWorkerFromState)
 
+	app.Post("/api/details", PermissionMiddleware("create_detail"), stateHandler.CreateRepairDetails)
+	app.Get("/api/details/project/:id", PermissionMiddleware("get_detail_by_id"), stateHandler.GetRepairDetailsByProjectID)
+	app.Patch("/api/details", PermissionMiddleware("update_detail"), stateHandler.UpdateRepairDetail)
+	app.Delete("/api/details/:id", PermissionMiddleware("delete_detail"), stateHandler.DeleteRepairDetail)
+
 	log.Fatal(app.Listen(":3000"))
 }
 
@@ -156,6 +183,7 @@ func PermissionMiddleware(requiredPermission string) fiber.Handler {
 	}
 }
 
+/*
 func authMiddleware(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
@@ -170,12 +198,64 @@ func authMiddleware(c *fiber.Ctx) error {
 	if err != nil || !token.Valid {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired JWT"})
 	}
+	claims, ok := token.Claims.(*entity.JwtClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
+	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	userID := uint(claims["userID"].(float64))
+	userID := claims.UserID
+	if userID == 0 {
+		return errors.New("userID is valid")
+	}
+
 	c.Locals("userID", userID)
 
 	return c.Next()
+}
+*/
+
+func getUsersByProjectID(c *fiber.Ctx) error {
+
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"Error": err.Error(),
+		})
+	}
+
+	var projectRoles []entity.ProjectRole
+	db.Where("project_id = ?", uint(id)).Find(&projectRoles)
+
+	var workerID []uint
+
+	var manager uint
+	for _, value := range projectRoles {
+		if value.RoleID == 1 {
+			workerID = append(workerID, value.UserID)
+		}
+
+		if value.RoleID == 2 {
+			manager = value.UserID
+		}
+	}
+
+	var users []entity.User
+
+	for _, value := range workerID {
+		var user entity.User
+
+		db.First(&user, value)
+		users = append(users, user)
+	}
+
+	var user entity.User
+	db.First(&user, manager)
+
+	return c.JSON(fiber.Map{
+		"Workers": users,
+		"Manager": user,
+	})
+
 }
 
 func login(c *fiber.Ctx) error {
@@ -193,16 +273,38 @@ func login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": user.ID,
-	})
+	var userRole entity.UserRole
+	db.Where("user_id = ?", user.ID).First(&userRole)
+
+	var role entity.Role
+	db.First(&role, userRole.RoleID)
+
+	var projectRole []entity.ProjectRole
+	db.Where("user_id = ?", user.ID).Find(&projectRole)
+
+	var projects []uint
+	for _, value := range projectRole {
+		projects = append(projects, value.ProjectID)
+	}
+	claims := entity.JwtClaims{
+		UserID:    user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Role:      role.Name,
+		Projects:  projects,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Токен истекает через 24 часа
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"token": tokenString})
+	return c.JSON(fiber.Map{"token": tokenString, "claims": claims})
 }
 
 func createRole(c *fiber.Ctx) error {
@@ -291,6 +393,70 @@ func clearDatabase(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "done",
+	})
+}
+func authMiddleware(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or malformed JWT"})
+	}
+
+	tokenString := authHeader[len("Bearer "):]
+	token, err := jwt.ParseWithClaims(tokenString, &entity.JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired JWT"})
+	}
+
+	claims, ok := token.Claims.(*entity.JwtClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
+	}
+
+	userID := claims.UserID
+	if userID == 0 {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	c.Locals("userID", userID)
+
+	return c.Next()
+}
+func AuthenticateToken(tokenString string) (*entity.JwtClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &entity.JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*entity.JwtClaims)
+	if !ok {
+		return nil, err
+	}
+
+	return claims, nil
+}
+func ProtectedRoute(c *fiber.Ctx) error {
+	tokenn := c.Get("Authorization")
+	if tokenn == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or malformed token"})
+	}
+
+	token := strings.TrimPrefix(tokenn, "Bearer ")
+	claims, err := AuthenticateToken(token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})
+	}
+
+	return c.JSON(fiber.Map{
+		"user_id":    claims.UserID,
+		"first_name": claims.FirstName,
+		"last_name":  claims.LastName,
+		"role":       claims.Role,
 	})
 }
 
