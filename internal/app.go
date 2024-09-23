@@ -50,6 +50,7 @@ func Init() *gorm.DB {
 		DB.Create(&role)
 	}
 
+
 	// Создание разрешений
 	permissions := []entity.Permission{
 		{Name: "get_documents"},
