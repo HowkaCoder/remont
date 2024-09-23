@@ -34,6 +34,7 @@ func Init() *gorm.DB {
 		&entity.Char{},
 		&entity.State{},
 		&entity.StateUser{},
+		&entity.RepairDetails{},
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -98,6 +99,10 @@ func Init() *gorm.DB {
 		{Name: "get_projects_by_worker_id"},
 		{Name: "get_projects_by_client_id"},
 		{Name: "get_states_by_worker_id"},
+		{Name: "create_detail"},
+		{Name: "update_detail"},
+		{Name: "get_detail_by_id"},
+		{Name: "delete_detail"},
 	}
 
 	for _, permission := range permissions {
@@ -107,10 +112,15 @@ func Init() *gorm.DB {
 	// Связывание ролей и разрешений
 	rolePermissions := map[string][]string{
 		"worker": {
-			"get_all_projects", "create_project", "update_project", "get_project_by_id", "delete_project",
+			"get_documents", "create_document", "update_document", "get_document_by_id", "get_documents_by_folder_id",
+			"delete_document", "get_all_projects", "create_project", "update_project", "get_project_by_id", "delete_project",
 			"get_all_project_roles", "create_project_role", "update_project_role", "get_project_role_by_id",
 			"delete_project_role", "get_all_photos", "create_photo", "get_photos_by_folder_id", "get_photo_by_id",
-			"delete_photo", "update_photo", "get_states_by_worker_id",
+			"delete_photo", "update_photo", "get_all_document_folders", "create_document_folder",
+			"update_document_folder", "delete_document_folder", "get_photo_folder_by_project_id", "create_photo_folder",
+			"update_photo_folder", "delete_photo_folder", "get_chars_by_project_id", "create_char", "update_char", "delete_char",
+			"get_states_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
+			"get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
 		"manager": {
 			"get_documents", "create_document", "update_document", "get_document_by_id", "get_documents_by_folder_id",
@@ -121,14 +131,14 @@ func Init() *gorm.DB {
 			"update_document_folder", "delete_document_folder", "get_photo_folder_by_project_id", "create_photo_folder",
 			"update_photo_folder", "delete_photo_folder", "get_chars_by_project_id", "create_char", "update_char", "delete_char",
 			"get_states_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
-			"get_projects_by_worker_id", "get_projects_by_client_id",
+			"get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
 		"client": {
 			"get_documents", "get_document_by_id", "get_documents_by_folder_id", "get_all_projects", "get_project_by_id",
 			"get_all_project_roles", "get_project_role_by_id", "get_all_photos", "get_photos_by_folder_id", "get_photo_by_id",
 			"get_all_document_folders", "get_document_folder_by_folder_id", "get_document_folder_by_project_id",
 			"get_all_photo_folders", "get_photo_folder_by_folder_id", "get_photo_folder_by_project_id",
-			"get_chars_by_project_id", "get_states_by_project_id", "get_projects_by_worker_id", "get_projects_by_client_id",
+			"get_chars_by_project_id", "get_states_by_project_id", "get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
 	}
 

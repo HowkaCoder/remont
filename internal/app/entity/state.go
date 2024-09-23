@@ -24,3 +24,15 @@ type StateUser struct {
 	StateID uint `gorm:"not null" json:"state_id"`
 	UserID  uint `gorm:"not null" json:"user_id"`
 }
+
+type RepairDetails struct {
+	gorm.Model
+	ID                 uint `gorm:"primaryKey"`
+	ProjectID          uint `gorm:"not null" json:"project_id"`
+	PaidMaterials      uint `gorm:"not null" json:"paid_materials"`
+	NecessaryMaterials uint `gorm:"not null" json:"necessary_materials"`
+	PaidWork           uint `gorm:"not null" json:"paid_work"`
+	NecessaryWork      uint `gorm:"not null" json:"necessary_work"`
+	DeadlineDays       uint `gorm:"not null" json:"deadline_days"`
+	CompletionDays     uint `gorm:"not null" json:"completion_days"`
+}

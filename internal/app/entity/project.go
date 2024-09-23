@@ -8,6 +8,8 @@ type Project struct {
 	gorm.Model
 	ID              uint             `gorm:"primaryKey"`
 	Title           string           `gorm:"not null" json:"title"`
+	Image           string           `json:"image"`
+	Status          string           `json:"status"`
 	Members         []ProjectRole    `gorm:"foreignKey:ProjectID" json:"members"`
 	Chars           []Char           `gorm:"foreignKey:ProjectID" json:"characteristics"`
 	PhotoFolders    []PhotoFolder    `gorm:"foreignKey:ProjectID" json:"photo_folders"`
