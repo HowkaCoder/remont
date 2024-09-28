@@ -85,6 +85,7 @@ func main() {
 	app.Static("/uploads/documents", documentDir)
 
 	app.Get("/get-profile", ProtectedRoute)
+	app.Delete("/users/:id", DeleteUser)
 	// Роуты для регистрации и логина
 	app.Post("/register", userHandler.CreateUser)
 	app.Post("/login", login)
@@ -161,6 +162,21 @@ func main() {
 	app.Delete("/api/details/:id", PermissionMiddleware("delete_detail"), stateHandler.DeleteRepairDetail)
 
 	log.Fatal(app.Listen(":3000"))
+}
+
+func DeleteUser(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
+	}
+
+	var user entity.User
+
+	db.First(&user, uint(id))
+
+	db.Delete(&user)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "successfully deleted"})
 }
 
 func PermissionMiddleware(requiredPermission string) fiber.Handler {
