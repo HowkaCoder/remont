@@ -50,6 +50,7 @@ func Init() *gorm.DB {
 		DB.Create(&role)
 	}
 
+
 	// Создание разрешений
 	permissions := []entity.Permission{
 		{Name: "get_documents"},
@@ -117,7 +118,6 @@ func Init() *gorm.DB {
 			"get_all_project_roles", "create_project_role", "update_project_role", "get_project_role_by_id",
 			"delete_project_role", "get_all_photos", "create_photo", "get_photos_by_folder_id", "get_photo_by_id",
 			"delete_photo", "update_photo", "get_all_document_folders", "create_document_folder",
-			"get_document_folder_by_project_id",
 			"update_document_folder", "delete_document_folder", "get_photo_folder_by_project_id", "create_photo_folder",
 			"update_photo_folder", "delete_photo_folder", "get_chars_by_project_id", "create_char", "update_char", "delete_char",
 			"get_states_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
@@ -131,7 +131,7 @@ func Init() *gorm.DB {
 			"delete_photo", "update_photo", "get_all_document_folders", "create_document_folder",
 			"update_document_folder", "delete_document_folder", "get_photo_folder_by_project_id", "create_photo_folder",
 			"update_photo_folder", "delete_photo_folder", "get_chars_by_project_id", "create_char", "update_char", "delete_char",
-			"get_states_by_project_id", "get_document_folder_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
+			"get_states_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
 			"get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
 		"client": {
@@ -139,7 +139,7 @@ func Init() *gorm.DB {
 			"get_all_project_roles", "get_project_role_by_id", "get_all_photos", "get_photos_by_folder_id", "get_photo_by_id",
 			"get_all_document_folders", "get_document_folder_by_folder_id", "get_document_folder_by_project_id",
 			"get_all_photo_folders", "get_photo_folder_by_folder_id", "get_photo_folder_by_project_id",
-			"get_chars_by_project_id", "get_document_folder_by_project_id", "get_states_by_project_id", "get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
+			"get_chars_by_project_id", "get_states_by_project_id", "get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
 	}
 
