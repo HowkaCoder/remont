@@ -61,7 +61,7 @@ func main() {
 
 	app.Use(func(c *fiber.Ctx) error {
 		c.Set("Access-Control-Allow-Origin", "*")
-		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE , PATCH")
+		c.Set("Access-Control-Allow-Methods". , "GET, POST, PUT, DELETE , PATCH")
 		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		c.Set("Access-Control-Allow-Credentials", "true")
 		if c.Method() == "OPTIONS" {
@@ -85,7 +85,6 @@ func main() {
 	app.Static("/uploads/documents", documentDir)
 
 	app.Get("/get-profile", ProtectedRoute)
-	app.Delete("/users/:id", DeleteUser)
 	// Роуты для регистрации и логина
 	app.Post("/register", userHandler.CreateUser)
 	app.Post("/login", login)
@@ -162,21 +161,6 @@ func main() {
 	app.Delete("/api/details/:id", PermissionMiddleware("delete_detail"), stateHandler.DeleteRepairDetail)
 
 	log.Fatal(app.Listen(":3000"))
-}
-
-func DeleteUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
-	}
-
-	var user entity.User
-
-	db.First(&user, uint(id))
-
-	db.Delete(&user)
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "successfully deleted"})
 }
 
 func PermissionMiddleware(requiredPermission string) fiber.Handler {
@@ -308,6 +292,7 @@ func login(c *fiber.Ctx) error {
 		LastName:  user.LastName,
 		Role:      role.Name,
 		Projects:  projects,
+		City :     user.City
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Токен истекает через 24 часа
 		},
@@ -473,6 +458,7 @@ func ProtectedRoute(c *fiber.Ctx) error {
 		"first_name": claims.FirstName,
 		"last_name":  claims.LastName,
 		"role":       claims.Role,
+		"city":       claims.City,
 	})
 }
 
