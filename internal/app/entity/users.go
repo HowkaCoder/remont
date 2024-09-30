@@ -16,6 +16,7 @@ type User struct {
 	PhoneNumber   string
 	CreatedAt     string
 	UserType      string
+	City          string
 	DeactivatedAt *string
 
 	Roles []Role `gorm:"many2many:user_roles"`
@@ -53,6 +54,7 @@ type JwtClaims struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Role      string `json:"role"`
+	City      string `json:"city"`
 	Projects  []uint `json:"project"`
 	jwt.StandardClaims
 }

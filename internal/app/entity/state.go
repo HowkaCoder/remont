@@ -35,5 +35,4 @@ type RepairDetails struct {
 	NecessaryWork      uint `gorm:"not null" json:"necessary_work"`
 	DeadlineDays       uint `gorm:"not null" json:"deadline_days"`
 	CompletionDays     uint `gorm:"not null" json:"completion_days"`
-	ProjectPrice       uint `gorm:"not null" json:"project_price"`
 }

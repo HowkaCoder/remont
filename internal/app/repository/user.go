@@ -65,6 +65,10 @@ func (ur *userRepository) UpdateUser(user *entity.User, id uint) error {
 	} else if user.Password != "" {
 		eUser.Password = user.Password
 	}
+	
+	if user.City != "" {
+	  eUser.City = user.City 
+	}
 
 	if err := ur.db.Save(&eUser).Error; err != nil {
 		return err

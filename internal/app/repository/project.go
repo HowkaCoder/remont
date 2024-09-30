@@ -83,15 +83,7 @@ func (pr *projectRepository) GetProjectByID(id uint) (*entity.Project, error) {
 }
 
 func (pr *projectRepository) CreateProject(project *entity.Project) error {
-
-	pr.db.Create(&project)
-
-	var repairDetail entity.RepairDetails
-
-	repairDetail.ProjectID = project.ID
-
-	return pr.db.Create(&repairDetail).Error
-
+	return pr.db.Create(&project).Error
 }
 
 func (pr *projectRepository) UpdateProject(project *entity.Project, id uint) error {
