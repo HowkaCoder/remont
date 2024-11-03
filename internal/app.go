@@ -45,11 +45,11 @@ func Init() *gorm.DB {
 		{Name: "worker"},
 		{Name: "manager"},
 		{Name: "client"},
+		{Name: "prorab"},
 	}
 	for _, role := range roles {
 		DB.Create(&role)
 	}
-
 
 	// Создание разрешений
 	permissions := []entity.Permission{
@@ -141,6 +141,17 @@ func Init() *gorm.DB {
 			"get_all_photo_folders", "get_photo_folder_by_folder_id", "get_photo_folder_by_project_id",
 			"get_chars_by_project_id", "get_states_by_project_id", "get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
 		},
+		"prorab": {
+			"get_documents", "create_document", "update_document", "get_document_by_id", "get_documents_by_folder_id",
+			"delete_document", "get_all_projects", "create_project", "update_project", "get_project_by_id", "delete_project",
+			"get_all_project_roles", "create_project_role", "update_project_role", "get_project_role_by_id",
+			"delete_project_role", "get_all_photos", "create_photo", "get_photos_by_folder_id", "get_photo_by_id",
+			"delete_photo", "update_photo", "get_all_document_folders", "create_document_folder",
+			"update_document_folder", "delete_document_folder", "get_photo_folder_by_project_id", "create_photo_folder",
+			"update_photo_folder", "delete_photo_folder", "get_chars_by_project_id", "create_char", "update_char", "delete_char",
+			"get_states_by_project_id", "create_state", "update_state", "delete_state", "create_state_relation", "delete_state_relation",
+			"get_projects_by_worker_id", "get_projects_by_client_id", "create_detail", "update_detail", "get_detail_by_id", "delete_detail",
+		},
 	}
 
 	for roleName, perms := range rolePermissions {
@@ -182,6 +193,14 @@ func Init() *gorm.DB {
 			Password:    "client",
 			PhoneNumber: "32e23e23e23e2",
 		},
+		{
+			FirstName:   "prorab",
+			LastName:    "Opergenov",
+			MiddleName:  "Popovich",
+			Email:       "prorab@gmail.com",
+			Password:    "prorab",
+			PhoneNumber: "32894yed2",
+		},
 	}
 
 	for _, user := range users {
@@ -193,6 +212,7 @@ func Init() *gorm.DB {
 		"worker@gmail.com":  "worker",
 		"manager@gmail.com": "manager",
 		"client@gmail.com":  "client",
+		"prorab@gmail.com":  "prorab",
 	}
 
 	for email, roleName := range userRoles {
