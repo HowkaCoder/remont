@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/HowkaCoder/remont/internal/app/entity"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -12,8 +12,8 @@ var DB *gorm.DB
 
 func Init() *gorm.DB {
 	var err error
-	//dsn := "host=dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com user=root password=OumUpk50PxWzWAu6Hni07HHvmdNj9SzE dbname=remont port=5432"
-	DB, err = /* gorm.Open(postgres.Open(dsn), &gorm.Config{}) */ gorm.Open(sqlite.Open("database/database.db"), &gorm.Config{})
+	dsn := "host=dpg-cr7j2sjv2p9s73a556b0-a.oregon-postgres.render.com user=root password=OumUpk50PxWzWAu6Hni07HHvmdNj9SzE dbname=remont port=5432"
+	DB, err =  gorm.Open(postgres.Open(dsn), &gorm.Config{}) /* gorm.Open(sqlite.Open("database/database.db"), &gorm.Config{})*/
 	if err != nil {
 		log.Fatal(err)
 	}
