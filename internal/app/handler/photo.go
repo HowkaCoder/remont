@@ -74,10 +74,10 @@ func (h *PhotoHandler) CreatePhoto(c *fiber.Ctx) error {
 	}
 
 	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
-	backURL := "https://remont.onrender.com/"
+	backURL := "https://remont-production.up.railway.app/"
 	filePath := filepath.Join(uploadDir, fileName)
-	Fpath := filepath.Join(backURL , filePath )
-	
+	Fpath := filepath.Join(backURL, filePath)
+
 	if err := c.SaveFile(file, filePath); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
