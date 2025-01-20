@@ -57,8 +57,9 @@ func main() {
 	stateUSecase := usecase.NewStateUsecase(stateRepo)
 	stateHandler := handler.NewStateHandler(stateUSecase)
 
-	app := fiber.New()
-
+	app := fiber.New(fiber.Config{
+		BodyLimit: 100 * 1024 * 1024,
+	})
 	app.Use(func(c *fiber.Ctx) error {
 		c.Set("Access-Control-Allow-Origin", "*")
 		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE , PATCH")
