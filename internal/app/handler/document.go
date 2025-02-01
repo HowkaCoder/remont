@@ -71,6 +71,7 @@ func (dh *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 
 	file := files[0]
 
+	fileEXt := filepath.Ext(file.Filename)
 	uploadDir := "./uploads/documents"
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -83,7 +84,7 @@ func (dh *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName, DocumentFolderID: uint(docFolderID)}
+	doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName, DocumentFolderID: uint(docFolderID), FileExt: fileEXt}
 
 	if err := dh.usecadse.CreateDocument(&doc); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
@@ -124,7 +125,7 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 		}
 
 		file := files[0]
-
+		fileExt := filepath.Ext(file.Filename)
 		uploadDir := "./uploads/documents"
 		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -137,7 +138,7 @@ func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: filePath}
+		doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: filePath, FileExt: fileExt}
 
 		if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})

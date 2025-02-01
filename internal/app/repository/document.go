@@ -60,6 +60,9 @@ func (dr *documentRepository) UpdateDocument(doc *entity.Document, id uint) erro
 	if doc.DocumentFolderID != 0 {
 		eDoc.DocumentFolderID = doc.DocumentFolderID
 	}
+	if doc.FileExt != "" {
+		eDoc.FileExt = doc.FileExt
+	}
 
 	return dr.db.Save(&eDoc).Error
 }
