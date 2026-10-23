@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+*.db
+.env
+uploads/
+/remont
+/main

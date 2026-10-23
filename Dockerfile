@@ -1,21 +1,15 @@
-# Указываем базовый образ с Go, используем последний стабильный образ
-FROM golang:1.21-alpine
-
-# Устанавливаем рабочую директорию внутри контейнера
-WORKDIR /app
+FROM golang:1.22-alpine AS build
 RUN apk add --no-cache gcc musl-dev
-
-# Копируем go.mod и go.sum, чтобы установить зависимости
+WORKDIR /src
 COPY go.mod go.sum ./
-ENV CGO_ENABLED=1
-# Загружаем зависимости
 RUN go mod download
-
-# Копируем все файлы проекта в рабочую директорию
 COPY . .
+RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o /out/remont .
 
-# Компилируем приложение
-RUN go build -o main .
-
-# Указываем команду для запуска приложения
-CMD ["./main"]
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
+COPY --from=build /out/remont .
+RUN mkdir -p database uploads
+EXPOSE 3000
+CMD ["./remont"]
