@@ -3,12 +3,12 @@ module github.com/HowkaCoder/remont
 go 1.21.1
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.9.0
 	gorm.io/driver/sqlite v1.5.7
+	golang.org/x/crypto v0.24.0
 	gorm.io/gorm v1.25.10
 )
 
