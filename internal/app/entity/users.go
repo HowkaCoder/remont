@@ -12,7 +12,7 @@ type User struct {
 	LastName      string
 	MiddleName    string
 	Email         string `gorm:"unique"`
-	Password      string
+	Password      string `json:"-"`
 	PhoneNumber   string
 	CreatedAt     string
 	UserType      string

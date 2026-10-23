@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"fmt"
-	"net/http"
-	"os"
+	"errors"
 	"path/filepath"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/HowkaCoder/remont/internal/app/entity"
 	"github.com/HowkaCoder/remont/internal/app/usecase"
@@ -14,180 +12,153 @@ import (
 )
 
 type DocumentHandler struct {
-	usecadse usecase.DocumentUsecase
+	usecase usecase.DocumentUsecase
+	dir     string
 }
 
-func NewDocumentHandler(usecase usecase.DocumentUsecase) *DocumentHandler {
-	return &DocumentHandler{usecadse: usecase}
+func NewDocumentHandler(usecase usecase.DocumentUsecase, dir string) *DocumentHandler {
+	return &DocumentHandler{usecase: usecase, dir: dir}
 }
 
 func (dh *DocumentHandler) GetAllDocuments(c *fiber.Ctx) error {
-	docs, err := dh.usecadse.GetAllDocuments()
+	docs, err := dh.usecase.GetAllDocuments()
 	if err != nil {
-		return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"Error": err.Error()})
+		return serverError(c, err)
 	}
-
 	return c.JSON(docs)
 }
 
 func (dh *DocumentHandler) GetDocumentByID(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
-	}
-	doc, err := dh.usecadse.GetDocumentByID(uint(id))
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+		return badRequest(c, errors.New("invalid document id"))
 	}
 
+	doc, err := dh.usecase.GetDocumentByID(uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
+	}
 	return c.JSON(doc)
 }
 
 func (dh *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 	form, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return badRequest(c, err)
 	}
 
-	name := form.Value["name"]
-	if len(name) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Name is required"})
+	name := formValue(form, "name")
+	if name == "" {
+		return badRequest(c, errors.New("name is required"))
 	}
-
-	projectID, err := strconv.Atoi(form.Value["projectID"][0])
+	projectID, err := formUint(form, "projectID")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Project ID is required"})
+		return badRequest(c, err)
 	}
-	docFolderID, err := strconv.Atoi(form.Value["folderID"][0])
+	folderID, err := formUint(form, "folderID")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"Error": err.Error(),
-		})
-	}
-	files := form.File["file"]
-	if len(files) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
+		return badRequest(c, err)
 	}
 
-	file := files[0]
-
-	fileEXt := filepath.Ext(file.Filename)
-	uploadDir := "./uploads/documents"
-	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	file := formFile(form)
+	if file == nil {
+		return badRequest(c, errors.New("file is required"))
 	}
 
-	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
-	filePath := filepath.Join(uploadDir, fileName)
-
-	if err := c.SaveFile(file, filePath); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	fileName, err := saveUpload(c, file, dh.dir)
+	if err != nil {
+		return serverError(c, err)
 	}
 
-	doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: uploadDir + "/" + fileName, DocumentFolderID: uint(docFolderID), FileExt: fileEXt}
-
-	if err := dh.usecadse.CreateDocument(&doc); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	doc := entity.Document{
+		Name:             name,
+		Filepath:         "./uploads/documents/" + fileName,
+		ProjectID:        projectID,
+		DocumentFolderID: folderID,
+		FileExt:          strings.ToLower(filepath.Ext(file.Filename)),
+	}
+	if err := dh.usecase.CreateDocument(&doc); err != nil {
+		removeUpload(dh.dir, fileName)
+		return serverError(c, err)
 	}
 
-	return c.Status(http.StatusCreated).JSON(doc)
+	return c.Status(fiber.StatusCreated).JSON(doc)
 }
 
 func (dh *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
+		return badRequest(c, errors.New("invalid document id"))
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return badRequest(c, err)
 	}
 
-	name := form.Value["name"]
-
-	projectID, err := strconv.Atoi(form.Value["projectID"][0])
+	existing, err := dh.usecase.GetDocumentByID(uint(id))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Project ID is required"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
 	}
 
-	files := form.File["file"]
+	doc := entity.Document{Name: formValue(form, "name")}
+	if v, err := formUint(form, "projectID"); err == nil {
+		doc.ProjectID = v
+	}
+	if v, err := formUint(form, "folderID"); err == nil {
+		doc.DocumentFolderID = v
+	}
 
-	if len(files) > 0 {
-
-		eDoc, err := dh.usecadse.GetDocumentByID(uint(id))
+	if file := formFile(form); file != nil {
+		fileName, err := saveUpload(c, file, dh.dir)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+			return serverError(c, err)
 		}
-
-		if err := os.Remove(eDoc.Filepath); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-		}
-
-		file := files[0]
-		fileExt := filepath.Ext(file.Filename)
-		uploadDir := "./uploads/documents"
-		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-		}
-
-		fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
-		filePath := filepath.Join(uploadDir, fileName)
-
-		if err := c.SaveFile(file, filePath); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-		}
-
-		doc := entity.Document{ProjectID: uint(projectID), Name: name[0], Filepath: filePath, FileExt: fileExt}
-
-		if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
-		}
-
-	} else {
-
-		doc := entity.Document{ProjectID: uint(projectID), Name: name[0]}
-
-		if err := dh.usecadse.UpdateDocument(&doc, uint(id)); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
-		}
-
+		doc.Filepath = "./uploads/documents/" + fileName
+		doc.FileExt = strings.ToLower(filepath.Ext(file.Filename))
 	}
-	return c.JSON(fiber.Map{"name": name[0], "projectID": projectID, "file": files, "len(files)": len(files), "id": uint(id)})
+
+	if err := dh.usecase.UpdateDocument(&doc, uint(id)); err != nil {
+		return serverError(c, err)
+	}
+
+	if doc.Filepath != "" {
+		removeUpload(dh.dir, existing.Filepath)
+	}
+
+	return c.JSON(fiber.Map{"message": "successfully updated"})
 }
 
 func (dh *DocumentHandler) DeleteDocument(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
+		return badRequest(c, errors.New("invalid document id"))
 	}
 
-	doc, err := dh.usecadse.GetDocumentByID(uint(id))
+	doc, err := dh.usecase.GetDocumentByID(uint(id))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
 	}
 
-	if err := os.Remove(doc.Filepath); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	if err := dh.usecase.DeleteDocument(uint(id)); err != nil {
+		return serverError(c, err)
 	}
-
-	if err := dh.usecadse.DeleteDocument(uint(id)); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+	if err := removeUpload(dh.dir, doc.Filepath); err != nil {
+		return serverError(c, err)
 	}
 
 	return c.JSON(fiber.Map{"message": "successfully deleted"})
-
 }
 
 func (dh *DocumentHandler) GetDocumentsByFolderID(c *fiber.Ctx) error {
 	folderID, err := strconv.Atoi(c.Params("folderID"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
-	}
-	docs, err := dh.usecadse.GetDocumentsByFolderID(uint(folderID))
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"Error": err.Error()})
+		return badRequest(c, errors.New("invalid folder id"))
 	}
 
+	docs, err := dh.usecase.GetDocumentsByFolderID(uint(folderID))
+	if err != nil {
+		return serverError(c, err)
+	}
 	return c.JSON(docs)
 }
