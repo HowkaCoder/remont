@@ -54,20 +54,24 @@ func (ur *userRepository) UpdateUser(user *entity.User, id uint) error {
 
 	if user.FirstName != "" {
 		eUser.FirstName = user.FirstName
-	} else if user.MiddleName != "" {
+	}
+	if user.MiddleName != "" {
 		eUser.MiddleName = user.MiddleName
-	} else if user.LastName != "" {
+	}
+	if user.LastName != "" {
 		eUser.LastName = user.LastName
-	} else if user.Email != "" {
+	}
+	if user.Email != "" {
 		eUser.Email = user.Email
-	} else if user.PhoneNumber != "" {
+	}
+	if user.PhoneNumber != "" {
 		eUser.PhoneNumber = user.PhoneNumber
-	} else if user.Password != "" {
+	}
+	if user.Password != "" {
 		eUser.Password = user.Password
 	}
-	
 	if user.City != "" {
-	  eUser.City = user.City 
+		eUser.City = user.City
 	}
 
 	if err := ur.db.Save(&eUser).Error; err != nil {
